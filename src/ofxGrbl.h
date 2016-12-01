@@ -45,6 +45,11 @@ public:
 	void resetCurrent();
 	void home();
 
+	void moveRight(float _mm);
+	void moveLeft(float _mm);
+	void moveUp(float _mm);
+	void moveDown(float _mm);
+
 	// fbo
 	ofFbo _fbo;
 
@@ -62,6 +67,7 @@ public:
 	// serial
 	ofSerial serial;
 	bool isConnect;
+	bool isDeviceReady;
 	string port;
 	int baudrate;
 	void Connect(string _port = "", int _baudrate = -1);
@@ -83,10 +89,10 @@ public:
 	// UI
 	void initUI();
 	void guiEvent(ofxUIEventArgs &e);
+	void toggleVisible();
 	ofxUICanvas *gui;
 	float theme;
 	vector<string> baudrateList;
-
 	float feedback_interval;
 
 	// events

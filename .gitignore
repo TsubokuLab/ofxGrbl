@@ -73,3 +73,5 @@ Desktop.ini
 #Android
 .csettings
 *.lib
+*.opendb
+*.db

@@ -12,13 +12,23 @@ void ofxGrbl::setup() {
 	isDrawMode = true;
 	firstTimeLoad = true;
 
-	serial.listDevices();
-	vector <ofSerialDeviceInfo> deviceList = serial.getDeviceList();
+	// fbo
+	WINDOW_WIDTH = ofGetWidth();
+	WINDOW_HEIGHT = ofGetHeight();
+	_fbo.allocate(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	//baudrateList.push_back("9600");
-	//baudrateList.push_back("19200");
-	//baudrateList.push_back("38400");
-	//baudrateList.push_back("57600");
+	// serial
+	serial.getDeviceList();
+	isConnect = false;
+	isDeviceReady = false;
+	port = "COM3";
+	baudrate = 115200;
+
+	// settings
+	baudrateList.push_back("9600");
+	baudrateList.push_back("19200");
+	baudrateList.push_back("38400");
+	baudrateList.push_back("57600");
 	baudrateList.push_back("115200");
 
 	_settings.MaxSpeed = ofVec3f(10000,10000,10000);
@@ -28,39 +38,40 @@ void ofxGrbl::setup() {
 	_settings.UpPos = 0;
 	_settings.DownPos = -10.0f;
 
-	port = "COM3";
-	baudrate = 115200;
-
 	initUI();
 	Connect();
 
-	//GRBL_WIDTH = 1800; // mm
-	//GRBL_HEIGHT = 1200; // mm
-	WINDOW_WIDTH = ofGetWidth();
-	WINDOW_HEIGHT = ofGetHeight();
-
 	color = ofColor::white;
-
-	//ofSetWindowShape(GRBL_WIDTH, GRBL_HEIGHT);
-
-	_fbo.allocate(WINDOW_WIDTH, WINDOW_HEIGHT);
 }
 
 //--------------------------------------------------------------
 void ofxGrbl::update() {
 
+	//int waitCount = 10000;
+	//while (!serial.available() && waitCount > 0) {
+	//	cout << "[ waiting ]" << waitCount << endl;
+	//	waitCount--;
+	//}
+	//if (waitCount == 0) {
+	//	isConnect = false;
+	//	cout << "[ timeout ]" << _port << " is busy." << endl;
+	//}
+
 	if (isConnect) {
 		while (serial.available() > 0) {
+			if (!isDeviceReady) {
+				isDeviceReady = true;
+			}
+
 			char _byte = (char)serial.readByte();
 			if (_byte == '\n' || _byte == '\r') {
 				if (readBuffer != "") {
-					cout << "[ ofxGrblController ] [ RECEIVE ] " << readBuffer << endl;
+					cout << "[ ofxGrbl ] [ RECEIVE ] " << readBuffer << endl;
 					if (readBuffer == "ok") {
 						isReadyToSend = true;
-						//cout << "isReadyToSend !!" << endl;
 					}
 					if (readBuffer == "error: Unsupported command") {
-						cout << "[ ofxGrblController ] [ PAUSED ]" << endl;
+						cout << "[ ofxGrbl ] [ PAUSED ]" << endl;
 						isPause = true;
 						isReadyToSend = true;
 					}
@@ -96,23 +107,21 @@ void ofxGrbl::update() {
 		}
 	}
 
-	// send
-	if (isReadyToSend && !isPause) {
-		if (sendQueList.size()>0) {
-			sendMessage(sendQueList[0], true);
+	if (isConnect && isDeviceReady) {
 
-			sendQueList.erase(sendQueList.begin());
-			cout << "[ ofxGrblController ] [ QUE ] " << sendQueList.size() << endl;
+		// send
+		if (isReadyToSend && !isPause) {
+			if (sendQueList.size() > 0) {
+				sendMessage(sendQueList[0], true);
 
-			isReadyToSend = false;
+				sendQueList.erase(sendQueList.begin());
+				cout << "[ ofxGrbl ] [ QUE ] " << sendQueList.size() << endl;
+
+				isReadyToSend = false;
+			}
 		}
-	}
-	else {
-		//cout << "waiting..." << endl;
-	}
 
-	// get status
-	if (isConnect) {
+		// get status
 		if (ofGetFrameNum() % (int)_settings.FeedbackInterval == 0) sendMessage("?", true);
 	}
 
@@ -127,11 +136,10 @@ void ofxGrbl::draw() {
 	ofSetLineWidth(3);
 
 	if (ofGetMousePressed(0)) {
-		//ofSetColor(ofColor::fromHsb(int((float)ofGetFrameNum() / 2.0f) % 255, 255, 255));
 		ofSetColor(color);
 		ofDrawCircle((float)ofGetMouseX() / ofGetWidth() * WINDOW_WIDTH, (float)ofGetMouseY() / ofGetHeight() * WINDOW_HEIGHT, 15);
-		ofSetColor(0, 255, 0);
-		ofDrawBitmapString("X:" + ofToString(ofGetMouseX() / (float)ofGetWidth() * GRBL_WIDTH) + "\nY:" + ofToString(ofGetMouseY() / (float)ofGetHeight() * GRBL_HEIGHT), (float)ofGetMouseX() / ofGetWidth() * WINDOW_WIDTH + 20, (float)ofGetMouseY() / ofGetHeight() * WINDOW_HEIGHT + 20);
+		//ofSetColor(0, 255, 0);
+		//ofDrawBitmapString("X:" + ofToString(ofGetMouseX() / (float)ofGetWidth() * GRBL_WIDTH) + "\nY:" + ofToString(ofGetMouseY() / (float)ofGetHeight() * GRBL_HEIGHT), (float)ofGetMouseX() / ofGetWidth() * WINDOW_WIDTH + 20, (float)ofGetMouseY() / ofGetHeight() * WINDOW_HEIGHT + 20);
 	}
 
 	for (int i = 0; i < strokeList.size(); i++) {
@@ -191,37 +199,7 @@ void ofxGrbl::close() {
 
 //--------------------------------------------------------------
 void ofxGrbl::keyPressed(int key) {
-	string _message = "";
-	switch (key) {
-	case OF_KEY_RIGHT:
-		sendMessage("G91 G1 X10 Y0 Z0", true);
-		break;
-	case OF_KEY_LEFT:
-		sendMessage("G91 G1 X-10 Y0 Z0", true);
-		break;
-	case OF_KEY_UP:
-		sendMessage("G91 G1 X0 Y10 Z0", true);
-		break;
-	case OF_KEY_DOWN:
-		sendMessage("G91 G1 X0 Y-10 Z0", true);
-		break;
-	case OF_KEY_RETURN:
-		gui->toggleVisible();
-		break;
-	case OF_KEY_DEL:
-	case OF_KEY_BACKSPACE:
-		if(!gui->isVisible()) resetCurrent();
-		break;
-	case OF_KEY_HOME:
-		home();
-		break;
-	case ' ':
-		isDrawMode = !isDrawMode;
-		break;
-	case 'f':
-	case 'F':
-		ofToggleFullscreen();
-	}
+
 }
 
 //--------------------------------------------------------------
@@ -254,15 +232,13 @@ void ofxGrbl::mouseDragged(int x, int y, int button) {
 
 	targetPos = ofVec2f(x / (float)ofGetWidth(), y / (float)ofGetHeight());
 
-	// 最低移動距離
+	// minimum move
 	if (ofDist(prevPos.x, prevPos.y, targetPos.x, targetPos.y) < 0.001f) {
 		cout << ofDist(prevPos.x, prevPos.y, targetPos.x, targetPos.y) << endl;
 		return;
 	}
 
-	//if (isDrawMode) {
-		tmpStroke.push_back(targetPos);
-	//}
+	tmpStroke.push_back(targetPos);
 	sendMessage(vec2fToGcode(targetPos));
 
 	prevPos = targetPos;
@@ -273,33 +249,28 @@ void ofxGrbl::mousePressed(int x, int y, int button) {
 	if (gui->isVisible()) return;
 	tmpStroke.clear();
 	ofVec2f _tmpVec2 = ofVec2f(x / (float)ofGetWidth(), y / (float)ofGetHeight());
-	//if (isDrawMode) {
-		tmpStroke.push_back(_tmpVec2);
-	//}
+
+	tmpStroke.push_back(_tmpVec2);
 	sendMessage(vec2fToGcode(_tmpVec2));
 
-	//if (isDrawMode) {
-		if (_settings.isUseZAxis) sendMessage("G1 Z" + ofToString(_settings.DownPos, 2));
-	//}
+	if (_settings.isUseZAxis) sendMessage("G1 Z" + ofToString(_settings.DownPos, 2));
+
 }
 
 //--------------------------------------------------------------
 void ofxGrbl::mouseReleased(int x, int y, int button) {
 	if (gui->isVisible()) return;
 	ofVec2f _tmpVec2 = ofVec2f(x / (float)ofGetWidth(), y / (float)ofGetHeight());
-	//if (isDrawMode) {
-		tmpStroke.push_back(_tmpVec2);
-		if (tmpStroke.size() > 2) {
-			strokeList.push_back(tmpStroke);
-		}
-	//}
+	tmpStroke.push_back(_tmpVec2);
+	if (tmpStroke.size() > 2) {
+		strokeList.push_back(tmpStroke);
+	}
+
 	tmpStroke.clear();
 
 	sendMessage(vec2fToGcode(_tmpVec2));
 
-	//if (isDrawMode) {
-		if (_settings.isUseZAxis) sendMessage("G1 Z" + ofToString(_settings.UpPos, 2));
-	//}
+	if (_settings.isUseZAxis) sendMessage("G1 Z" + ofToString(_settings.UpPos, 2));
 }
 
 //--------------------------------------------------------------
@@ -316,16 +287,16 @@ void ofxGrbl::dragEvent(ofDragInfo dragInfo) {
 
 //--------------------------------------------------------------
 void ofxGrbl::loadFromFile(string _path) {
-	cout << "[ ofxGrblController ] loadFromFile( " << _path << " )" << endl;
+	cout << "[ ofxGrbl ] loadFromFile( " << _path << " )" << endl;
 	string _text = string(ofBufferFromFile(_path));
 	vector<string> _linelist = ofSplitString(_text, "\n", true);
-	cout << "[ ofxGrblController ] loadFromFile() : " << _linelist.size() << " lines." << endl;
+	cout << "[ ofxGrbl ] loadFromFile() : " << _linelist.size() << " lines." << endl;
 
 	vector<ofVec2f> _tmpVec;
 	bool isDown = false;
 	for (int i = 0; i < _linelist.size(); i++) {
 
-		// Zの状態で
+		// 
 		if (_linelist[i].find('Z') != string::npos) {
 			if (checkZisDown(_linelist[i])) {
 				_tmpVec.clear();
@@ -336,11 +307,11 @@ void ofxGrbl::loadFromFile(string _path) {
 		}
 
 		if (checkXYCommand(_linelist[i])) {
-			cout << "[ ofxGrblController ] Command added : " << _linelist[i] << endl;
+			cout << "[ ofxGrbl ] Command added : " << _linelist[i] << endl;
 			_tmpVec.push_back(gcodeToVec2f(_linelist[i]));
 		}
 		else {
-			cout << "[ ofxGrblController ] Invalid command : " << _linelist[i] << endl;
+			cout << "[ ofxGrbl ] Invalid command : " << _linelist[i] << endl;
 		}
 		sendMessage(_linelist[i]);
 	}
@@ -354,14 +325,14 @@ void ofxGrbl::sendMessage(string _msg, bool direct) {
 				string _message = _msg + "\n";
 				unsigned char* writeByte = (unsigned char*)_message.c_str();
 				serial.writeBytes(writeByte, _message.length());
-				cout << "[ ofxGrblController ] sendMessage( " << _message << " )";
+				cout << "[ ofxGrbl ] sendMessage( " << _message << " )";
 			}
 			else {
-				cout << "[ ofxGrblController ] sendMessage() : Message is empty." << endl;
+				cout << "[ ofxGrbl ] sendMessage() : Message is empty." << endl;
 			}
 		}
 		else {
-			cout << "[ ofxGrblController ] sendMessage() : Serial is not connected." << endl;
+			cout << "[ ofxGrbl ] sendMessage() : Serial is not connected." << endl;
 		}
 	}
 	else {
@@ -382,13 +353,11 @@ bool ofxGrbl::checkZisDown(string _line) {
 	for (int i = 0; i < _commands.size(); i++) {
 		if (_commands[i][0] == 'Z') {
 			if (_commands[i].size() == 1) {
-				//cout << "Zがスペース区切り" << endl;
-				//「Z 99.00」のようにスペース区切りの時
-				_zPos = ofToFloat(_commands[i + 1]); //次の文字を使う
+				// space parse
+				_zPos = ofToFloat(_commands[i + 1]); // use next character
 			}
 			else {
-				//cout << "zがつながってる" << endl;
-				//「Z99.00」のように表記がつながっている時
+				// no space parce
 				_zPos = ofToFloat(_commands[i].substr(1));
 			}
 		}
@@ -404,26 +373,22 @@ ofVec2f ofxGrbl::gcodeToVec2f(string _line) {
 	for (int i = 0; i < _commands.size(); i++) {
 		if (_commands[i][0] == 'X') {
 			if (_commands[i].size() == 1) {
-				//cout << "xがスペース区切り" << endl;
-				//「X 99.00」のようにスペース区切りの時
-				_result.x = ofToFloat(_commands[i + 1]) / GRBL_WIDTH; //次の文字を使う
+				// space parse
+				_result.x = ofToFloat(_commands[i + 1]) / GRBL_WIDTH; // use next character
 			}
 			else {
-				//cout << "xがつながってる" << endl;
-				//「X99.00」のように表記がつながっている時
+				// no space parse
 				_result.x = ofToFloat(_commands[i].substr(1)) / GRBL_WIDTH;
 			}
 			_isXYEnable = true;
 		}
 		else if (_commands[i][0] == 'Y') {
 			if (_commands[i].size() == 1) {
-				//cout << "yがスペース区切り" << endl;
-				//「X 99.00」のようにスペース区切りの時
-				_result.y = ofToFloat(_commands[i + 1]) / GRBL_HEIGHT; //次の文字を使う
+				// space parse
+				_result.y = ofToFloat(_commands[i + 1]) / GRBL_HEIGHT; // use next character
 			}
 			else {
-				//cout << "yがつながってる" << endl;
-				//「X99.00」のように表記がつながっている時
+				// no space parce
 				_result.y = ofToFloat(_commands[i].substr(1)) / GRBL_HEIGHT;
 			}
 			_isXYEnable = true;
@@ -473,29 +438,19 @@ void ofxGrbl::initUI() {
 	gui->addLabelButton("SET", false);
 
 	gui->addSpacer(length - xInit, 2);
-	gui->addWidgetDown(new ofxUILabel("SERIAL SETTINGS", OFX_UI_FONT_MEDIUM));
-	gui->addLabel("PORT_LABEL", "PORT NAME");
+	//gui->addWidgetDown(new ofxUILabel("SERIAL SETTINGS", OFX_UI_FONT_MEDIUM));
+	gui->addLabel("PORT_LABEL", "SERIAL PORT");
 	gui->addTextInput("PORT", "COM3");
 	//gui->addLabel("BAUDRATE_LABEL", "BAUDRATE");
 	gui->addRadio("BAUDRATE", baudrateList);
 	//gui->addLabel("SEND MESSAGE");
 	//gui->addTextInput("INPUT", "$$");
-	//gui->addLabelButton("CONNECT SERIAL", false);
+	gui->addLabelButton("CONNECT SERIAL", false);
 	//gui->addLabelButton("SERIAL SEND", false);
 	//gui->addLabelButton("GET INFO", false);
 
-	//gui->addSpacer(length - xInit, 2);
-	//gui->addWidgetDown(new ofxUILabel("UDP SETTINGS", OFX_UI_FONT_MEDIUM));
-	//gui->addLabel("UDP_IP_LABEL", "UDP_IP");
-	//gui->addTextInput("UDP_IP", "192.168.0.2");
-	//gui->addLabel("UDP_PORT_LABEL", "UDP_PORT");
-	//gui->addTextInput("UDP_PORT", "20000");
-	//gui->addLabelButton("CONNECT UDP", false);
-	//gui->addToggle("IS UDP CONNECTED", &isUdpConnected);
-
 	gui->addSpacer(length - xInit, 2);
 	gui->addWidgetDown(new ofxUILabel("CONTROL", OFX_UI_FONT_MEDIUM));
-	//gui->addToggle("IS_READY_TO_SEND", &isReadyToSend);
 	gui->addImageButton("HOME", "./GUI/icon/fa-home.png", false, 30, 30);
 	gui->setWidgetPosition(OFX_UI_WIDGET_POSITION_RIGHT);
 	gui->addImageButton("PLAY", "./GUI/icon/fa-play-circle-o.png", false, 30, 30);
@@ -504,12 +459,6 @@ void ofxGrbl::initUI() {
 	gui->addImageButton("OPEN", "./GUI/icon/fa-folder-open.png", false, 30, 30);
 	gui->addImageButton("TRASH", "./GUI/icon/fa-trash.png", false, 30, 30);
 	gui->setWidgetPosition(OFX_UI_WIDGET_POSITION_DOWN);
-
-	//gui->addSpacer(length - xInit, 2);
-	//gui->addLabelButton("RESET", false, length / 2 - xInit);
-	//gui->setWidgetPosition(OFX_UI_WIDGET_POSITION_RIGHT);
-	//gui->addLabelButton("DRAW", false, length / 2 - xInit * 2);
-	//gui->setWidgetPosition(OFX_UI_WIDGET_POSITION_DOWN);
 
 	gui->addSpacer(length - xInit, 2);
 	gui->addLabelButton("SAVE", false);
@@ -633,6 +582,11 @@ void ofxGrbl::guiEvent(ofxUIEventArgs &e)
 }
 
 //--------------------------------------------------------------
+void ofxGrbl::toggleVisible() {
+	gui->toggleVisible();
+}
+
+//--------------------------------------------------------------
 void ofxGrbl::saveSettings() {
 	cout << "[ ofxGrbl ] saveSettings" << endl;
 	gui->saveSettings("./GUI/guiSettings.xml");
@@ -651,15 +605,11 @@ void ofxGrbl::loadSettings() {
 		cout << "[ ofxGrbl ] FirstTimeLoad!" << endl;
 		firstTimeLoad = false;
 		currentPos = targetPos = prevPos = ofVec3f(_settings.HomePosition.x  * _settings.MaxTravel.x, _settings.HomePosition.y  * _settings.MaxTravel.y, _settings.HomePosition.z  * _settings.MaxTravel.z);
-
 	}
-	//string path = "./strokeList.ngc";
-	//loadFromFile(path);
 }
 
 void ofxGrbl::drawCurrent() {
 	for (int i = 0; i < strokeList.size(); i++) {
-
 
 		for (int j = 0; j < strokeList[i].size(); j++) {
 			sendMessage(vec2fToGcode(strokeList[i][j]));
@@ -670,7 +620,6 @@ void ofxGrbl::drawCurrent() {
 
 		if (_settings.isUseZAxis) sendMessage("G1 Z" + ofToString(_settings.UpPos, 2));
 	}
-	home();
 }
 
 void ofxGrbl::saveCurrent(string _path) {
@@ -691,8 +640,6 @@ void ofxGrbl::saveCurrent(string _path) {
 	}
 	output += "G90 G0 X0 Y0 Z0\n";
 
-
-	//	string path = "./" + ofToString(ofGetYear()) + "-" + ofToString(ofGetMonth()) + "-" + ofToString(ofGetDay()) + "_" + ofToString(ofGetHours()) + "-" + ofToString(ofGetMinutes()) + "-" + ofToString(ofGetSeconds()) + ".ngc";
 	string fileName = _path;
 	ofBuffer buffer = ofBuffer(output);
 	ofBufferToFile(fileName, buffer);
@@ -710,26 +657,22 @@ void ofxGrbl::home() {
 void ofxGrbl::Connect(string _port, int _baudrate) {
 	if (_port == "") _port = port;
 	if (_baudrate <= 0) _baudrate = baudrate;
-	cout << "Connect( " << _port << ", " << _baudrate << " )" << endl;
+
+	cout << "[ ofxGrbl ] Connect( " << _port << ", " << _baudrate << " )" << endl;
+
+	// reset serial
+	if (isConnect || isDeviceReady) {
+		serial.close();
+		isConnect = false;
+		isDeviceReady = false;
+	}
 
 	isConnect = serial.setup(_port, _baudrate);
 	if (isConnect) {
-		int waitCount = 10000;
-		while (!serial.available() && waitCount > 0) {
-			cout << "[ waiting ]" << waitCount << endl;
-			waitCount--;
-		}
-		if (waitCount == 0) {
-			isConnect = false;
-			cout << "[ timeout ]" << _port << " is busy." << endl;
-		}
-		else {
-			isConnect = true;
-		}
-	}
-	else {
+		cout << "[ ofxGrbl ] Connected to " << _port << "@" << _baudrate << " !" << endl;
+		sendMessage("$$", true);
+	} else {
 		cout << _port << " is not exists." << endl;
-		isConnect = false;
 	}
 }
 
@@ -746,16 +689,16 @@ void ofxGrbl::setColor(ofColor _color) {
 
 
 void ofxGrbl::setSettings() {
-	// スピード設定
+	// set max speed
 	sendMessage("F" + ofToString(_settings.MaxSpeed.x, 2));
 	sendMessage("$110=" + ofToString(_settings.MaxSpeed.x, 2));
 	sendMessage("$111=" + ofToString(_settings.MaxSpeed.y, 2));
 	sendMessage("$112=" + ofToString(_settings.MaxSpeed.z, 2));
-
+	// set accesl
 	sendMessage("$120=" + ofToString(_settings.Accel.x, 2));
 	sendMessage("$121=" + ofToString(_settings.Accel.y, 2));
 	sendMessage("$122=" + ofToString(_settings.Accel.z, 2));
-
+	// set max travel
 	sendMessage("$130=" + ofToString(_settings.MaxTravel.x, 2));
 	sendMessage("$131=" + ofToString(_settings.MaxTravel.y, 2));
 	sendMessage("$132=" + ofToString(_settings.MaxTravel.z, 2));
@@ -769,6 +712,9 @@ void ofxGrbl::setArea(float x, float y) {
 	GRBL_HEIGHT = y;
 
 	ofSetWindowShape(GRBL_WIDTH, GRBL_HEIGHT);
+
+	WINDOW_WIDTH = ofGetWidth();
+	WINDOW_HEIGHT = ofGetHeight();
 	_fbo.allocate(WINDOW_WIDTH, WINDOW_HEIGHT);
 }
 
@@ -778,4 +724,20 @@ void ofxGrbl::setHome(float x, float y, float z) {
 }
 void ofxGrbl::setHome(ofVec3f _homePos) {
 	_settings.HomePosition = ofVec3f(_homePos.x, _homePos.y, _homePos.z);
+}
+
+void ofxGrbl::moveRight(float _mm) {
+	sendMessage("G91 G1 X" + ofToString(_mm) + " Y0 Z0", true);
+}
+
+void ofxGrbl::moveLeft(float _mm) {
+	sendMessage("G91 G1 X" + ofToString(-_mm) + " Y0 Z0", true);
+}
+
+void ofxGrbl::moveUp(float _mm) {
+	sendMessage("G91 G1 X0 Y" + ofToString(_mm) + " Z0", true);
+}
+
+void ofxGrbl::moveDown(float _mm) {
+	sendMessage("G91 G1 X0 Y" + ofToString(-_mm) + " Z0", true);
 }

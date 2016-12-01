@@ -1,53 +1,47 @@
 <Widget>
     <Kind>4</Kind>
     <Name>MAX SPEED X</Name>
-    <Value>15220.827148438</Value>
+    <Value>20000.000000000</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>MAX SPEED Y</Name>
-    <Value>15000.250000000</Value>
+    <Value>20000.000000000</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>MAX SPEED Z</Name>
-    <Value>15073.775390625</Value>
+    <Value>20000.000000000</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>ACCEL X</Name>
-    <Value>146.911758423</Value>
+    <Value>500.000000000</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>ACCEL Y</Name>
-    <Value>148.713241577</Value>
+    <Value>500.000000000</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>ACCEL Z</Name>
-    <Value>148.713241577</Value>
+    <Value>500.000000000</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>MAX TRAVEL X</Name>
-    <Value>1902.205932617</Value>
+    <Value>1301.470581055</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>MAX TRAVEL Y</Name>
-    <Value>791.544067383</Value>
+    <Value>833.455932617</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>MAX TRAVEL Z</Name>
     <Value>994.117675781</Value>
-</Widget>
-<Widget>
-    <Kind>11</Kind>
-    <Name>HOME POSITION</Name>
-    <XValue>1.000000000</XValue>
-    <YValue>1.000000000</YValue>
 </Widget>
 <Widget>
     <Kind>2</Kind>
@@ -67,12 +61,32 @@
 <Widget>
     <Kind>4</Kind>
     <Name>FEEDBACK INTERVAL</Name>
-    <Value>9.794117928</Value>
+    <Value>5.397058964</Value>
 </Widget>
 <Widget>
     <Kind>12</Kind>
     <Name>PORT</Name>
     <Value>COM3</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>9600</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>19200</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>38400</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>57600</Name>
+    <Value>0</Value>
 </Widget>
 <Widget>
     <Kind>2</Kind>
