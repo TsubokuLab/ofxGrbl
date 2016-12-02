@@ -6,6 +6,7 @@
 
 ## 必要なもの
 ### ソフトウェア
+
 * ofxGrbl（oFアドオン本体）
 
  [https://github.com/TsubokuLab/ofxGrbl](https://github.com/TsubokuLab/ofxGrbl) 
@@ -34,12 +35,13 @@
  ホーミング（自動ホーム位置合わせ）使わない場合はなくて大丈夫
 
 #### レールとか
+
 少し高めだけどOpenBuildsのV-Slotシリーズがオススメ。
 オープンソースハードウェアなので関連パーツを3Dプリントしたりできる。
 
 * V-Slot­® Linear Rail
 
-V型の溝がついたライナーレール
+ V型の溝がついたライナーレール
  [http://openbuildspartstore.com/v-slot-linear-rail/](http://openbuildspartstore.com/v-slot-linear-rail/) 
 
 * Solid V Wheel™ Kit
@@ -55,26 +57,39 @@ V型の溝がついたライナーレール
 * タイミングベルト　GT2
 
  2mmピッチのタイミングベルト。
+
 * プーリー
 
  タイミングベルトに合わせて2mmピッチのものを選ぶ。この歯数によってスピード・トルクに影響が出る。
+
 * 質は落ちるけど上記が大体Aliexpressにあるので、こっちで買うと安くて良い感じ
  [https://www.aliexpress.com/store/123598](https://www.aliexpress.com/store/123598) 
 
 ## 関連アドオン
+
 * ofxGrbl
-　oFでGrbl使うアドオンの本体
+
+ oFでGrbl使うアドオンの本体
+
 * ofxUI
-　UI表示に使っている
+
+ UI表示に使っている
+
 * ofxXmlSettings
-　ofxUIの設定保存に使っている
+
+ ofxUIの設定保存に使っている
 
 ## 使い方（途中）
+
 [![GrblManager : ofxGrbl example ](http://img.youtube.com/vi/54ps6AzPNp4/0.jpg)](http://www.youtube.com/watch?v=54ps6AzPNp4 "GrblManager : ofxGrbl example ")
+
 ## Grblの設定方法
+
 設定を変更するにはシリアルコマンドで行う。
 ArduinoのシリアルモニタでもOK!(改行コードCR付きでコマンドを送る事)
+
 ### 現在の設定を表示
+
 ```
 $$
 ```
@@ -116,8 +131,10 @@ ok
 ```
 
 ### 設定を変更する
+
 番号と数値をコマンドで送信する。
 * 例)X軸の最高移動速度を15000mm/minに設定する場合。
+
 
 ```
 $110=15000
@@ -125,6 +142,7 @@ $110=15000
 という感じ。
 
 ## ステップ数の計算方法
+
 移動距離を合わせるため、
 
 * ステッピングモーター1回転のステップ数(steps)
