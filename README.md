@@ -1,21 +1,17 @@
 ﻿# ofxGrbl
 [Beta] This is an add-on for using Grbl(CNC milling controll software for Arduino) with openframeworks. 
 
-[https://youtu.be/3CR-sZpXvfI](https://youtu.be/3CR-sZpXvfI)
-
 Arduino用CNCコントロールスケッチ「Grbl」をopenFrameworksから制御するためのアドオン。
 
-![image][1073977454]
+[![ofxGrbl : Grbl( CNC milling controll software for Arduino) with openFrameworks demo](http://img.youtube.com/vi/3CR-sZpXvfI/0.jpg)](http://www.youtube.com/watch?v=3CR-sZpXvfI "Video Title")
+
 ## 必要なもの
 ### ソフトウェア
 * ofxGrbl（oFアドオン本体）
-
  [https://github.com/TsubokuLab/ofxGrbl](https://github.com/TsubokuLab/ofxGrbl) 
 
 * Grblソフトウェア（Arduino用スケッチ）
-
  [https://github.com/grbl/grbl](https://github.com/grbl/grbl) 
-
 
 ### ハードウェア
 
