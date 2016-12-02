@@ -456,7 +456,8 @@ void ofxGrbl::initUI() {
 	gui->addImageButton("PLAY", "./GUI/icon/fa-play-circle-o.png", false, 30, 30);
 	gui->addImageToggle("PAUSE", "./GUI/icon/fa-pause-circle-o.png", &isPause, 30, 30);
 	gui->addImageButton("STOP", "./GUI/icon/fa-stop-circle-o.png", false, 30, 30);
-	gui->addImageButton("OPEN", "./GUI/icon/fa-folder-open.png", false, 30, 30);
+	gui->addImageButton("PATH_SAVE", "./GUI/icon/fa-save.png", false, 30, 30);
+	gui->addImageButton("PATH_LOAD", "./GUI/icon/fa-folder-open.png", false, 30, 30);
 	gui->addImageButton("TRASH", "./GUI/icon/fa-trash.png", false, 30, 30);
 	gui->setWidgetPosition(OFX_UI_WIDGET_POSITION_DOWN);
 
@@ -547,7 +548,19 @@ void ofxGrbl::guiEvent(ofxUIEventArgs &e)
 			resetCurrent();
 		}
 	}
-	else if (name == "OPEN") {
+	else if (name == "PATH_SAVE") {
+		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
+		if (button->getValue()) {
+			// Did'nt work on WindowsOS.
+			/*
+			ofFileDialogResult saveFileResult = ofSystemSaveDialog("strokeList.gcode", "Save stroke paths to GCODE(.gcode)");
+			saveCurrent(saveFileResult.getPath());
+			*/
+			string _fileName = ofSystemTextBoxDialog("Please enter the file name.", "stroke");
+			saveCurrent("./" + _fileName + ".gcode");
+		}
+	}
+	else if (name == "PATH_LOAD") {
 		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
 		if (button->getValue()) {
 			ofFileDialogResult openFileResult = ofSystemLoadDialog("Select a GCODE(.gcode .nc .ngc) file");
@@ -638,7 +651,6 @@ void ofxGrbl::saveCurrent(string _path) {
 
 		if (_settings.isUseZAxis) output += "G1 Z" + ofToString(_settings.UpPos, 2) + "\n";
 	}
-	output += "G90 G0 X0 Y0 Z0\n";
 
 	string fileName = _path;
 	ofBuffer buffer = ofBuffer(output);

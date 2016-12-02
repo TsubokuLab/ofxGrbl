@@ -87,9 +87,7 @@ void ofApp::mouseMoved(int x, int y ){
 		grbl.mouseMoved(x, y);
 	}
 	else {
-		if (y < ofGetHeight() - 100) {
-			grbl.mouseMoved(x, y);
-		}
+		grbl.mouseMoved(x, y);
 	}
 }
 
@@ -99,9 +97,7 @@ void ofApp::mouseDragged(int x, int y, int button){
 		grbl.mouseDragged(x, y, button);
 	}
 	else {
-		if (y < ofGetHeight() - 100) {
-			grbl.mouseDragged(x, y, button);
-		}
+		grbl.mouseDragged(x, y, button);
 	}
 }
 
@@ -111,9 +107,7 @@ void ofApp::mousePressed(int x, int y, int button){
 		grbl.mousePressed(x, y, button);
 	}
 	else {
-		if (y < ofGetHeight() - 100) {
-			grbl.mousePressed(x, y, button);
-		}
+		grbl.mousePressed(x, y, button);
 	}
 }
 
@@ -123,9 +117,7 @@ void ofApp::mouseReleased(int x, int y, int button){
 		grbl.mouseReleased(x, y, button);
 	}
 	else {
-		if (y < ofGetHeight() - 100) {
-			grbl.mouseReleased(x, y, button);
-		}
+		grbl.mouseReleased(x, y, button);
 	}
 }
 
