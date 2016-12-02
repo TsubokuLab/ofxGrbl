@@ -60,7 +60,7 @@ void ofApp::keyPressed(int key){
 		break;
 	case OF_KEY_DEL:
 	case OF_KEY_BACKSPACE:
-		if (!grbl.gui->isVisible()) grbl.resetCurrent();
+		if (!grbl.gui->isVisible()) grbl.resetStrokes();
 		break;
 	case OF_KEY_HOME:
 		grbl.home();
@@ -82,43 +82,22 @@ void ofApp::keyReleased(int key){
 
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){
-	
-	if (grbl.gui->isVisible()) {
-		grbl.mouseMoved(x, y);
-	}
-	else {
-		grbl.mouseMoved(x, y);
-	}
+	grbl.mouseMoved(x, y);
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
-	if (grbl.gui->isVisible()) {
-		grbl.mouseDragged(x, y, button);
-	}
-	else {
-		grbl.mouseDragged(x, y, button);
-	}
+	grbl.mouseDragged(x, y, button);
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-	if (grbl.gui->isVisible()) {
-		grbl.mousePressed(x, y, button);
-	}
-	else {
-		grbl.mousePressed(x, y, button);
-	}
+	grbl.mousePressed(x, y, button);
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
-	if (grbl.gui->isVisible()) {
-		grbl.mouseReleased(x, y, button);
-	}
-	else {
-		grbl.mouseReleased(x, y, button);
-	}
+	grbl.mouseReleased(x, y, button);
 }
 
 //--------------------------------------------------------------
