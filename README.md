@@ -177,3 +177,16 @@ $100=20
 $101=20
 $102=20
 ```
+## イラレデータからパスを読み込みたいとき
+順序としては、以下の流れ。
+**イラレデータ（.ai）→DXFデータ（.dxf）→GCodeデータ（.gcode / .ngc / .nc）**
+
+### 必要ソフト
+dxf2gcode
+:  DXFファイルからGCodeを生成するフリーソフト
+    [https://sourceforge.net/projects/dxf2gcode/](https://sourceforge.net/projects/dxf2gcode/)
+
+### 手順
+1. イラレからパスをDXF書き出しする。参考： [http://mathrax.sakura.ne.jp/kuze_jp/p-comp/cad/page003.html](http://mathrax.sakura.ne.jp/kuze_jp/p-comp/cad/page003.html) 
+2. DXFファイルをdxf2gcodeで読み込んで、.gcode / .ngc 形式で書き出す。
+3. 出力された .gcode / .ngcファイルを、LOADアイコンもしくはアプリにドラッグ＆ドロップして読み込む。 
