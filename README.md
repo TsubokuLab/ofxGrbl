@@ -4,8 +4,6 @@
 
 [![ofxGrbl : Grbl( CNC milling controll software for Arduino) with openFrameworks demo](http://img.youtube.com/vi/3CR-sZpXvfI/0.jpg)](http://www.youtube.com/watch?v=3CR-sZpXvfI "ofxGrbl : Grbl( CNC milling controll software for Arduino) with openFrameworks demo")
 
-[toc]
-
 ## 必要なもの
 ### ソフトウェア
 
