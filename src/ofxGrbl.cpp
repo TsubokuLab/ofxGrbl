@@ -131,6 +131,10 @@ void ofxGrbl::update() {
 
 //--------------------------------------------------------------
 void ofxGrbl::draw() {
+	draw(0, 0, ofGetWidth(), ofGetHeight());
+}
+//--------------------------------------------------------------
+void ofxGrbl::draw(int x, int y, int w, int h) {
 	_fbo.begin();
 	ofBackground(40);
 	ofSetLineWidth(3);
@@ -189,7 +193,7 @@ void ofxGrbl::draw() {
 	_fbo.end();
 
 	ofSetColor(255, 255, 255);
-	_fbo.draw(0, 0, ofGetWidth(), ofGetHeight());
+	_fbo.draw(x, y, w, h);
 }
 
 //--------------------------------------------------------------
@@ -281,7 +285,13 @@ void ofxGrbl::windowResized(int w, int h) {
 //--------------------------------------------------------------
 void ofxGrbl::dragEvent(ofDragInfo dragInfo) {
 	for (int i = 0; i < dragInfo.files.size(); i++) {
-		loadFromFile(ofToDataPath(dragInfo.files[i]));
+		string _ext = ofFile(dragInfo.files[i]).getExtension();
+		if (_ext == "gcode" || _ext == "nc" || _ext == "ngc") {
+			loadFromFile(ofToDataPath(dragInfo.files[i]));
+		}
+		else {
+			cout << "[ ofxGrbl ] Invalid extension. Please use ( .gcode / .ngc / .nc ). " << endl;
+		}
 	}
 }
 
@@ -412,7 +422,7 @@ void ofxGrbl::initUI() {
 	float xInit = OFX_UI_GLOBAL_WIDGET_SPACING;
 	float length = 280 - xInit;
 
-	gui = new ofxUICanvas(0, 5, length + xInit, ofGetHeight());
+	gui = new ofxUICanvas(0, 5, length + xInit, 1080);
 	gui->setFont("./GUI/NewMedia Fett.ttf");
 	gui->addWidgetDown(new ofxUILabel("[ Grbl Manager ]", OFX_UI_FONT_LARGE));
 	gui->addSpacer(length - xInit, 2);
@@ -537,7 +547,7 @@ void ofxGrbl::guiEvent(ofxUIEventArgs &e)
 		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
 		if (button->getValue()) {
 			if (sendQueList.size() == 0) {
-				drawCurrent();
+				drawStrokes();
 			}
 			isPause = false;
 		}
@@ -545,19 +555,24 @@ void ofxGrbl::guiEvent(ofxUIEventArgs &e)
 	else if (name == "STOP") {
 		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
 		if (button->getValue()) {
-			resetCurrent();
+			resetStrokes();
 		}
 	}
 	else if (name == "PATH_SAVE") {
 		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
 		if (button->getValue()) {
+			if (tmpStroke.size() > 2) {
+				strokeList.push_back(tmpStroke);
+			}
+			tmpStroke.clear();
+
 			// Did'nt work on WindowsOS.
 			/*
 			ofFileDialogResult saveFileResult = ofSystemSaveDialog("strokeList.gcode", "Save stroke paths to GCODE(.gcode)");
-			saveCurrent(saveFileResult.getPath());
+			saveStrokes(saveFileResult.getPath());
 			*/
 			string _fileName = ofSystemTextBoxDialog("Please enter the file name.", "stroke");
-			saveCurrent("./" + _fileName + ".gcode");
+			saveStrokes("./" + _fileName + ".gcode");
 		}
 	}
 	else if (name == "PATH_LOAD") {
@@ -570,13 +585,13 @@ void ofxGrbl::guiEvent(ofxUIEventArgs &e)
 	else if (name == "TRASH") {
 		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
 		if (button->getValue()) {
-			resetCurrent();
+			resetStrokes();
 		}
 	}
 	else if (name == "DRAW") {
 		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
 		if (button->getValue()) {
-			drawCurrent();
+			drawStrokes();
 		}
 	}
 	else if (name == "SAVE") {
@@ -603,9 +618,6 @@ void ofxGrbl::toggleVisible() {
 void ofxGrbl::saveSettings() {
 	cout << "[ ofxGrbl ] saveSettings" << endl;
 	gui->saveSettings("./GUI/guiSettings.xml");
-
-	string path = "./strokeList.ngc";
-	saveCurrent(path);
 }
 //--------------------------------------------------------------
 void ofxGrbl::loadSettings() {
@@ -621,7 +633,7 @@ void ofxGrbl::loadSettings() {
 	}
 }
 
-void ofxGrbl::drawCurrent() {
+void ofxGrbl::drawStrokes() {
 	for (int i = 0; i < strokeList.size(); i++) {
 
 		for (int j = 0; j < strokeList[i].size(); j++) {
@@ -635,7 +647,7 @@ void ofxGrbl::drawCurrent() {
 	}
 }
 
-void ofxGrbl::saveCurrent(string _path) {
+void ofxGrbl::saveStrokes(string _path) {
 	string output;
 
 	for (int i = 0; i < strokeList.size(); i++) {
@@ -643,10 +655,10 @@ void ofxGrbl::saveCurrent(string _path) {
 
 		for (int j = 0; j < strokeList[i].size(); j++) {
 			output += vec2fToGcode(strokeList[i][j]) + "\n";
-			if (j == 0) {
+			if (j == 0){
 				if (_settings.isUseZAxis) output += "G1 Z" + ofToString(_settings.DownPos, 2) + "\n";
+				output += vec2fToGcode(strokeList[i][j]) + "\n";
 			}
-			output += vec2fToGcode(strokeList[i][j]) + "\n";
 		}
 
 		if (_settings.isUseZAxis) output += "G1 Z" + ofToString(_settings.UpPos, 2) + "\n";
@@ -657,7 +669,7 @@ void ofxGrbl::saveCurrent(string _path) {
 	ofBufferToFile(fileName, buffer);
 }
 
-void ofxGrbl::resetCurrent() {
+void ofxGrbl::resetStrokes() {
 	strokeList.clear();
 	sendQueList.clear();
 }
@@ -736,6 +748,15 @@ void ofxGrbl::setHome(float x, float y, float z) {
 }
 void ofxGrbl::setHome(ofVec3f _homePos) {
 	_settings.HomePosition = ofVec3f(_homePos.x, _homePos.y, _homePos.z);
+}
+
+void ofxGrbl::setPosition(float _mmX, float _mmY, float _mmZ) {
+	tmpStroke.push_back(ofVec2f(_mmX / GRBL_WIDTH, _mmY / GRBL_HEIGHT));
+	sendMessage("G90 G1 X" + ofToString(_mmX) + " Y" + ofToString(_mmY) + "  Z" + ofToString(_mmZ) + " ", false);
+}
+void ofxGrbl::setPosition(ofVec3f _pos) {
+	tmpStroke.push_back(ofVec2f(_pos.x / GRBL_WIDTH, _pos.y / GRBL_HEIGHT));
+	sendMessage("G90 G1 X" + ofToString(_pos.x) + " Y" + ofToString(_pos.y) + "  Z" + ofToString(_pos.z) + " ", false);
 }
 
 void ofxGrbl::moveRight(float _mm) {

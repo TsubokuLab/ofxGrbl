@@ -1,0 +1,100 @@
+<Widget>
+    <Kind>4</Kind>
+    <Name>MAX SPEED X</Name>
+    <Value>20000.000000000</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>MAX SPEED Y</Name>
+    <Value>20000.000000000</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>MAX SPEED Z</Name>
+    <Value>20000.000000000</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>ACCEL X</Name>
+    <Value>500.000000000</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>ACCEL Y</Name>
+    <Value>500.000000000</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>ACCEL Z</Name>
+    <Value>500.000000000</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>MAX TRAVEL X</Name>
+    <Value>1301.470581055</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>MAX TRAVEL Y</Name>
+    <Value>833.455932617</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>MAX TRAVEL Z</Name>
+    <Value>994.117675781</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>Z AXIS</Name>
+    <Value>1</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>UP POS</Name>
+    <Value>0.000000000</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>DOWN POS</Name>
+    <Value>-5.147057533</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>FEEDBACK INTERVAL</Name>
+    <Value>11.992647171</Value>
+</Widget>
+<Widget>
+    <Kind>12</Kind>
+    <Name>PORT</Name>
+    <Value>COM3</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>9600</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>19200</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>38400</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>57600</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>115200</Name>
+    <Value>1</Value>
+</Widget>
+<Widget>
+    <Kind>20</Kind>
+    <Name>PAUSE</Name>
+    <Value>0</Value>
+</Widget>

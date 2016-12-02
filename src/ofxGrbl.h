@@ -11,6 +11,7 @@ public:
 	void setup();
 	void update();
 	void draw();
+	void draw(int x, int y, int w, int h);
 	void close();
 
 	void keyPressed(int key);
@@ -40,15 +41,17 @@ public:
 	void setHome(ofVec3f _homePos);
 
 	// controll
-	void drawCurrent();
-	void saveCurrent(string _path = "./strokeList.ngc");
-	void resetCurrent();
+	void drawStrokes();
+	void saveStrokes(string _path = "./strokeList.ngc");
+	void resetStrokes();
 	void home();
 
 	void moveRight(float _mm);
 	void moveLeft(float _mm);
 	void moveUp(float _mm);
 	void moveDown(float _mm);
+	void setPosition(float _mmX, float _mmY, float _mmZ = 0.0f);
+	void setPosition(ofVec3f _pos);
 
 	// fbo
 	ofFbo _fbo;
