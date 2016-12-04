@@ -87,6 +87,8 @@
 
 設定を変更するにはシリアルコマンドで行う。
 ArduinoのシリアルモニタでもOK!(改行コードCR付きでコマンドを送る事)
+基本はここのページを参考にする。
+ [https://github.com/grbl/grbl/wiki/Configuring-Grbl-v0.9](https://github.com/grbl/grbl/wiki/Configuring-Grbl-v0.9) 
 
 ### 現在の設定を表示
 
