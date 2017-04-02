@@ -1,5 +1,5 @@
-﻿# ofxGrbl
-[Beta] This is an add-on for using Grbl(CNC milling controll software for Arduino) with openframeworks. 
+# ofxGrbl
+[Beta] This is an add-on for using Grbl(CNC milling controll software for Arduino) with openframeworks. <br />
 [Beta] Arduino用CNCコントロールソフトウェア「Grbl」をopenFrameworksから制御するためのアドオン。
 
 [![ofxGrbl : Grbl( CNC milling controll software for Arduino) with openFrameworks demo](http://img.youtube.com/vi/3CR-sZpXvfI/0.jpg)](http://www.youtube.com/watch?v=3CR-sZpXvfI "ofxGrbl : Grbl( CNC milling controll software for Arduino) with openFrameworks demo")
@@ -7,80 +7,76 @@
 ## 必要なもの
 ### ソフトウェア
 
-* ofxGrbl（oFアドオン本体）
+* ofxGrbl（oFアドオン本体）<br />
+[https://github.com/TsubokuLab/ofxGrbl](https://github.com/TsubokuLab/ofxGrbl) 
 
- [https://github.com/TsubokuLab/ofxGrbl](https://github.com/TsubokuLab/ofxGrbl) 
-
-* Grblソフトウェア（Arduino用スケッチ）
-
+* Grblソフトウェア（Arduino用スケッチ）<br />
  [https://github.com/grbl/grbl](https://github.com/grbl/grbl) 
 
 ### ハードウェア
 
 #### 基盤系
 
-* Arduino UNO
-* CNC Shileld
+| 名称 | 価格 |　備考 | 買った場所 |
+| ------------- | ------------- | ------------- | ------------- |
+| Arduino UNO | 1個 435円 | Amazon最安値 | [http://amzn.to/2oNAEX2](http://amzn.to/2oNAEX2) |
+| CNCシールド | 1個 225円 | Amazon最安値 | [http://amzn.to/2nLtFyg](http://amzn.to/2nLtFyg) |
+| A4988（ステッピングモータードライバ） | 5個で1000円くらい |  | [http://amzn.to/2oNQD7r](http://amzn.to/2oNQD7r) |
+| エンドリミット | 1個 $0.44 | ※必要に応じて。ホーミング（自動ホーム位置合わせ）使わない場合はなくて大丈夫 | [http://bit.ly/2opXI1Q](http://bit.ly/2opXI1Q) |
 
- Amazonで600円くらい。
- [http://amzn.asia/cXCFI9b](http://amzn.asia/cXCFI9b) 
+ちなみにセットになっているのも売っていたのでこっちでいいかも。
 
-* A4988（ステッピングモータードライバ）
-
- Amazonで1700円くらい。
- [http://amzn.asia/gfEnJ2x](http://amzn.asia/gfEnJ2x) 
-
-* 必要に応じてエンドリミットとか
-
- ホーミング（自動ホーム位置合わせ）使わない場合はなくて大丈夫
+* Arduino+CNCシールド+A4988×4個セット 2630円<br />
+[http://amzn.to/2nLkYUN](http://amzn.to/2nLkYUN)  
 
 #### レールとか
 
 少し高めだけどOpenBuildsのV-Slotシリーズがオススメ。
+
+* OpenBuilds公式サイトはこちら<br />
+[http://openbuildspartstore.com](http://openbuildspartstore.com)
+
 オープンソースハードウェアなので関連パーツを3Dプリントしたりできる。
 
-* V-Slot­® Linear Rail
+※基本は上記の公式ストアから買うのがオススメ。公式から買うほうが断然質が良いけど、ほどんどがAliexpressにもあるので安く揃えたい時はこちら。<br />
+[https://www.aliexpress.com/store/123598](https://www.aliexpress.com/store/123598) 
 
- V型の溝がついたライナーレール
- [http://openbuildspartstore.com/v-slot-linear-rail/](http://openbuildspartstore.com/v-slot-linear-rail/) 
+| 名称 | 価格 |　備考 | 買った場所 |
+| ------------- | ------------- | ------------- | ------------- |
+| V-Slot® Linear Rail | 1mあたり $6 | V型の溝がついたライナーレール。1本の最長は1.5mまでだった気がする。 | 20mm x 20mm [http://bit.ly/2oqbJw1](http://bit.ly/2oqbJw1)<br />20mm x 40mm [http://bit.ly/2ntOzQX](http://bit.ly/2ntOzQX) |
+| Solid V Wheel™ Kit | 20個セット $35 | V型の溝に沿って稼働するホイールキット | [http://bit.ly/2n1QPU4](http://bit.ly/2n1QPU4) |
+| Smooth Idler Pulley wheel Kit | 20個入り $31.90 | アイドラープーリー（ベルト用滑車）のホイールキット。ベルトをレールに固定せずに | [http://bit.ly/2oO80or](http://bit.ly/2oO80or) |
+| 偏心スペーサ6mm | 20個セット $19.90 | 中心が偏っていて、片側のホイールを締め付けるのに使うスペーサー | [http://bit.ly/2n1N4y7](http://bit.ly/2n1N4y7) |
+| NEMA 17 Stepper Motor | 1個 $16.49 | 200 Stepのステッピングモーター。DC 12-24V/1.7 A | [http://bit.ly/2nLyXde](http://bit.ly/2nLyXde)  |
+| タイミングベルト　GT2 | 5m 1200円 | GT2（2mmピッチ）のタイミングベルト | [http://amzn.to/2nLpgf1](http://amzn.to/2nLpgf1) |
+| プーリー | 40歯のもので680円 | タイミングベルトに合わせて2mmピッチのものを選ぶ。この歯数によってスピード・トルクに影響が出る。 | [http://amzn.to/2nu9enP](http://amzn.to/2nu9enP) |
+| ティーナット　M5 | 25個入り $3.50 | ベルトやプレートを固定するときに必要なティーナット | [http://bit.ly/2n1Hufa](http://bit.ly/2n1Hufa) |
+| 低頭ネジ　M5 x 6mm | 1個 $0.10 | ベルトをレールに固定するときに必要な6mm低頭ネジ | [http://bit.ly/2nOt6W6](http://bit.ly/2nOt6W6) |
+| 低頭ネジ　M5 x 8mm | 100個入り $10.99 | プレートやコーナーパーツを固定するときに必要な8mm低頭ネジ | [http://bit.ly/2ntViu7](http://bit.ly/2ntViu7) |
+| アイドラープーリープレート | 1枚 $3.75 | アイドラープーリー（ベルト滑車）用のプーリーをレールに固定するプレート | [http://bit.ly/2oqnR0d](http://bit.ly/2oqnR0d) |
+| モーターマウントプレート | 1枚 $4.50 | ステッピングモーターをレールに固定するためのプレート | [http://bit.ly/2n1LWdT](http://bit.ly/2n1LWdT) |
+| Gantryプレート Universal  | 1枚 $7.95 | 可動部等に色々物を固定して動かすための大きめのプレート。大きいものを載せなくていい場合は↓のプレートで良い。 | [http://bit.ly/2nOqKXA](http://bit.ly/2nOqKXA) |
+| Gantryプレート 20mm | 1枚 $4.50 | 可動部等に色々物を固定して動かすための小さめのプレート。割と重宝する。 | [http://bit.ly/2oqmZZA](http://bit.ly/2oqmZZA) |
+| 90度インサイドブラケット | 10個入り $5 | コーナー用レール内に入れて90度に固定するブラケット。角度の精度は高くないから場合によっては↓の方が良いかも？ | [http://bit.ly/2oy2LtY](http://bit.ly/2oy2LtY) |
+| 90度キャストコーナー | 1個 $0.75 | レールにネジで固定するコーナーパーツ。ティーナットが必要なのと、低頭ネジじゃないとぶつかるので注意。 | [http://bit.ly/2oqqgs0](http://bit.ly/2oqqgs0) |
 
-* Solid V Wheel™ Kit
-
- V型の溝に沿って稼働するホイールキット
- [http://openbuildspartstore.com/solid-v-wheel-kit/](http://openbuildspartstore.com/solid-v-wheel-kit/) 
-
-* NEMA 17 Stepper Motor
-
- 200 Stepのステッピングモーター。DC 12-24V/1.68 A。
- [http://openbuildspartstore.com/nema-17-stepper-motor/](http://openbuildspartstore.com/nema-17-stepper-motor/) 
-
-* タイミングベルト　GT2
-
- 2mmピッチのタイミングベルト。
-
-* プーリー
-
- タイミングベルトに合わせて2mmピッチのものを選ぶ。この歯数によってスピード・トルクに影響が出る。
-
-* 質は落ちるけど上記が大体Aliexpressにあるので、こっちで買うと安くて良い感じ
- [https://www.aliexpress.com/store/123598](https://www.aliexpress.com/store/123598) 
+* 組み方等はOpenBuildsのサイトに知見が集合しているので眺めてるとだいたい分かってくる。<br />
+[http://openbuilds.org/](http://openbuilds.org/)
 
 ## 関連アドオン
 
-* ofxGrbl
+* ofxGrbl<br />
+oFでGrbl使うアドオンの本体。（このアドオン）
 
- oFでGrbl使うアドオンの本体
+* ofxUI<br />
+UI表示に使っている
 
-* ofxUI
-
- UI表示に使っている
-
-* ofxXmlSettings
-
- ofxUIの設定保存に使っている
+* ofxXmlSettings<br />
+ofxUIの設定保存に使っている
 
 ## 使い方（途中）
 
+* GrblManager : ofxGrbl example (Youtube)<br />
 [![GrblManager : ofxGrbl example ](http://img.youtube.com/vi/54ps6AzPNp4/0.jpg)](http://www.youtube.com/watch?v=54ps6AzPNp4 "GrblManager : ofxGrbl example ")
 
 ## Grblの設定方法
@@ -162,10 +158,11 @@ $110=15000
 
 | 項目名 | 値 |
 | ------------- | ------------- |
-| 1回転のステップ数  | 200 steps  |
-| マイクロステップ数  | 4 micros |
-| ベルトピッチ  | 2 mm  |
-| プーリーの歯数  | 20 teeth  |
+| 1回転のステップ数 | 200 steps |
+| マイクロステップ数 | 4 micros |
+| ベルトピッチ | 2 mm |
+| プーリーの歯数 | 20 teeth |
+
 の条件の場合は、
 
 ```
