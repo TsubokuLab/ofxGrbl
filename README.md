@@ -19,11 +19,11 @@
 
 | 名称 | 価格 |　備考 | 買った場所 |
 | ------------- | ------------- | ------------- | ------------- |
-| Arduino UNO | 1個 435円 | Amazon最安値 | [http://amzn.to/2oNAEX2](http://amzn.to/2oNAEX2) |
-| CNCシールド | 1個 225円 | Amazon最安値 | [http://amzn.to/2nLtFyg](http://amzn.to/2nLtFyg) |
-| A4988（ステッピングモータードライバ） | 5個で1000円くらい |  | [http://amzn.to/2oNQD7r](http://amzn.to/2oNQD7r) |
+| Arduino UNO | 1個 435円 | 互換基盤でもなんでもOK | [http://amzn.to/2oNAEX2](http://amzn.to/2oNAEX2) |
+| CNCシールド | 1個 225円 | 今回の主役となるシールド。かなり役に立つ。 | [http://amzn.to/2nLtFyg](http://amzn.to/2nLtFyg) |
+| A4988（ステッピングモータードライバ） | 5個で1000円くらい | 過電流等で割と頻繁に焼けるので、多めに買っておくのが吉。 | [http://amzn.to/2oNQD7r](http://amzn.to/2oNQD7r) |
 | エンドリミット | 1個 $0.44 | ※必要に応じて。ホーミング（自動ホーム位置合わせ）使わない場合はなくて大丈夫 | [http://bit.ly/2opXI1Q](http://bit.ly/2opXI1Q) |
-
+| 12-24V 8A ACアダプタ | 2100円 | ステッピングモーター1個あたり1.7Aなので8Aくらい欲しい。ちょっと作業中にショートしただけで一発で壊れるので、複数台必須。沢山壊した（涙） | [http://amzn.to/2oqFGN9](http://amzn.to/2oqFGN9) |
 ちなみにセットになっているのも売っていたのでこっちでいいかも。
 
 * Arduino+CNCシールド+A4988×4個セット 2630円<br />
