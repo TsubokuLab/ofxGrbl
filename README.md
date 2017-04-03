@@ -15,16 +15,17 @@
 
 ### ハードウェア
 
-#### 基板系
+#### 電子部品とか
 
 | 名称 | 価格 |　備考 | 買った場所 |
 | ------------- | ------------- | ------------- | ------------- |
 | Arduino UNO | 1個 435円 | 互換基板でもなんでもOK | [http://amzn.to/2oNAEX2](http://amzn.to/2oNAEX2) |
 | CNCシールド | 1個 225円 | 今回の主役となるシールド。かなり役に立つ。 | [http://amzn.to/2nLtFyg](http://amzn.to/2nLtFyg) |
+| NEMA 17 Stepper Motor | 1個 $16.49 | 200 Stepのステッピングモーター。DC 12-24V/1.7 A | [http://bit.ly/2nLyXde](http://bit.ly/2nLyXde)  |
 | A4988（ステッピングモータードライバ） | 5個で1000円くらい | 過電流等で割と頻繁に焼けるので、多めに買っておくのが吉。 | [http://amzn.to/2oNQD7r](http://amzn.to/2oNQD7r) |
-| エンドリミット | 1個 $0.44 | ※必要に応じて。ホーミング（自動ホーム位置合わせ）使わない場合はなくて大丈夫 | [http://bit.ly/2opXI1Q](http://bit.ly/2opXI1Q) |
+| エンドリミットスイッチ | 1個 $0.44 | ホーミング（自動ホーム位置合わせ）する時に必要なスイッチ。レールが範囲外に行こうとして壊れるのを防いでくれる。機能を利用しない場合は必要ない。 | [http://bit.ly/2opXI1Q](http://bit.ly/2opXI1Q) |
 | 12-24V 8A ACアダプタ | 1個 2100円 | ステッピングモーター1個あたり1.7Aなので8Aくらい欲しい。ちょっと作業中にショートしただけで一発で壊れるので、複数台必須。沢山壊した（涙） | [http://amzn.to/2oqFGN9](http://amzn.to/2oqFGN9) |
-| 非常停止押ボタンスイッチ | 1個 788円 | モーターに負荷がかかったり基板が燃えそうになった時に緊急停止させるボタン。かなり重宝する。あとロマン。 | [http://amzn.to/2oqHN3x](http://amzn.to/2oqHN3x) |
+| 非常停止押ボタンスイッチ | 1個 788円 | モーターに負荷がかかったり基板が燃えそうになった時に緊急停止させるボタン。かなり重宝する。**あとロマン。** | [http://amzn.to/2oqHN3x](http://amzn.to/2oqHN3x) |
 
 ちなみにArduino・CNCシールド・A4988はセットになっているのも売っていたのでこっちでもいいかも。
 
@@ -49,7 +50,6 @@
 | Solid V Wheel™ Kit | 20個セット $35 | V型の溝に沿って稼働するホイールキット | [http://bit.ly/2n1QPU4](http://bit.ly/2n1QPU4) |
 | Smooth Idler Pulley wheel Kit | 20個入り $31.90 | アイドラープーリー（ベルト用滑車）のホイールキット。ベルトをレールに固定せずに | [http://bit.ly/2oO80or](http://bit.ly/2oO80or) |
 | 偏心スペーサ6mm | 20個セット $19.90 | 中心が偏っていて、片側のホイールを締め付けるのに使うスペーサー | [http://bit.ly/2n1N4y7](http://bit.ly/2n1N4y7) |
-| NEMA 17 Stepper Motor | 1個 $16.49 | 200 Stepのステッピングモーター。DC 12-24V/1.7 A | [http://bit.ly/2nLyXde](http://bit.ly/2nLyXde)  |
 | タイミングベルト　GT2 | 5m 1200円 | GT2（2mmピッチ）のタイミングベルト | [http://amzn.to/2nLpgf1](http://amzn.to/2nLpgf1) |
 | プーリー | 40歯のもので680円 | タイミングベルトに合わせて2mmピッチのものを選ぶ。この歯数によってスピード・トルクに影響が出る。 | [http://amzn.to/2nu9enP](http://amzn.to/2nu9enP) |
 | ティーナット　M5 | 25個入り $3.50 | ベルトやプレートを固定するときに必要なティーナット | [http://bit.ly/2n1Hufa](http://bit.ly/2n1Hufa) |
