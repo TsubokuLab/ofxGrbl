@@ -116,6 +116,12 @@ public:
 	bool StepInvertY;
 	bool StepInvertZ;
 
+	// Mode (Spindle/Laser/Protter)
+	string Mode;
+	// Spindle Speed (S0-S100)
+	float SpindleSpeed;
+	// Protter Push Distance (0-100mm)
+	float PushDistance;
 	// Z Axis Settings
 	bool isUseZAxis;
 	float UpPos;

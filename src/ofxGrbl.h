@@ -25,9 +25,9 @@ public:
 
 	void loadFromFile(string _path);
 	void sendMessage(string _msg, bool direct = false);
-	bool checkXYCommand(string _line);
-	ofVec2f gcodeToVec2f(string _line);
-	string vec2fToGcode(ofVec2f _vec);
+	bool checkMoveCommand(string _line);
+	ofVec3f gcodeToVec3f(string _line);
+	string vec3fToGcode(ofVec3f _vec);
 	bool checkZisDown(string _line);
 	
 	void setDrawMode();
@@ -36,15 +36,19 @@ public:
 	ofColor color;
 
 	void setSettings();
-	void setArea(float x, float y);
+	void setArea(float x, float y, float z = 0);
 	void setHome(float x, float y, float z = 0);
 	void setHome(ofVec3f _homePos);
+	void setSpindle(bool _enable, bool _direct = false);
+	void setSpindleSpeed(int _speed, bool _direct = false);
 
 	// controll
 	void drawStrokes();
 	void saveStrokes(string _path = "./strokeList.ngc");
 	void resetStrokes();
 	void home();
+	void homing();
+	void killAlarmLock();
 
 	void moveRight(float _mm);
 	void moveLeft(float _mm);
@@ -64,6 +68,7 @@ public:
 	// stage
 	int GRBL_WIDTH; // mm
 	int GRBL_HEIGHT; // mm
+	int GRBL_DEPTH; // mm
 	int WINDOW_WIDTH; // px
 	int WINDOW_HEIGHT; // px
 
@@ -76,18 +81,22 @@ public:
 	void Connect(string _port = "", int _baudrate = -1);
 
 	// pathes
-	ofVec2f prevPos;
-	ofVec2f targetPos;
-	ofVec2f currentPos;
+	ofVec3f prevPos;
+	ofVec3f targetPos;
+	ofVec3f currentPos;
 	vector<string> sendQueList;
+
+	string status;
 	bool isPause;
 	bool isReadyToSend;
+	//int sentCount;
 	string readBuffer;
 	bool isDrawMode = false;
 	bool isDown = false;
+	bool bSpindle = false;
 
-	vector<vector<ofVec2f>> strokeList;
-	vector<ofVec2f> tmpStroke;
+	vector<vector<ofVec3f>> strokeList;
+	vector<ofVec3f> tmpStroke;
 
 	// UI
 	void initUI();
@@ -96,6 +105,7 @@ public:
 	ofxUICanvas *gui;
 	float theme;
 	vector<string> baudrateList;
+	vector<string> modeList;
 	float feedback_interval;
 
 	// events

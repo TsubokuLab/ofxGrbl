@@ -1,4 +1,34 @@
 <Widget>
+    <Kind>2</Kind>
+    <Name>Spindle</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>Laser</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>Protter</Name>
+    <Value>1</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>bSpindle</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>Spindle Speed(Laser Power)</Name>
+    <Value>100.000000000</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>Push Distance</Name>
+    <Value>100.000000000</Value>
+</Widget>
+<Widget>
     <Kind>4</Kind>
     <Name>MAX SPEED X</Name>
     <Value>20000.000000000</Value>
@@ -44,49 +74,14 @@
     <Value>994.117675781</Value>
 </Widget>
 <Widget>
-    <Kind>2</Kind>
-    <Name>Z AXIS</Name>
-    <Value>1</Value>
-</Widget>
-<Widget>
-    <Kind>4</Kind>
-    <Name>UP POS</Name>
-    <Value>0.000000000</Value>
-</Widget>
-<Widget>
-    <Kind>4</Kind>
-    <Name>DOWN POS</Name>
-    <Value>-5.147057533</Value>
-</Widget>
-<Widget>
     <Kind>4</Kind>
     <Name>FEEDBACK INTERVAL</Name>
-    <Value>5.397058964</Value>
+    <Value>6.496323586</Value>
 </Widget>
 <Widget>
     <Kind>12</Kind>
     <Name>PORT</Name>
     <Value>COM3</Value>
-</Widget>
-<Widget>
-    <Kind>2</Kind>
-    <Name>9600</Name>
-    <Value>0</Value>
-</Widget>
-<Widget>
-    <Kind>2</Kind>
-    <Name>19200</Name>
-    <Value>0</Value>
-</Widget>
-<Widget>
-    <Kind>2</Kind>
-    <Name>38400</Name>
-    <Value>0</Value>
-</Widget>
-<Widget>
-    <Kind>2</Kind>
-    <Name>57600</Name>
-    <Value>0</Value>
 </Widget>
 <Widget>
     <Kind>2</Kind>

@@ -5,6 +5,7 @@ void ofxGrbl::setup() {
 	cout << "[ ofxGrbl ] setup()" << endl;
 	ofEnableAlphaBlending();
 	readBuffer = "";
+	status = "";
 
 	// param
 	isReadyToSend = true;
@@ -25,18 +26,21 @@ void ofxGrbl::setup() {
 	baudrate = 115200;
 
 	// settings
-	baudrateList.push_back("9600");
-	baudrateList.push_back("19200");
-	baudrateList.push_back("38400");
-	baudrateList.push_back("57600");
+	//baudrateList.push_back("9600");
+	//baudrateList.push_back("19200");
+	//baudrateList.push_back("38400");
+	//baudrateList.push_back("57600");
 	baudrateList.push_back("115200");
+
+	// mode
+	modeList.push_back("Spindle");
+	modeList.push_back("Laser");
+	modeList.push_back("Protter");
 
 	_settings.MaxSpeed = ofVec3f(10000,10000,10000);
 	_settings.Accel = ofVec3f(100, 100, 100);
 	_settings.FeedbackInterval = 10;
-
-	_settings.UpPos = 0;
-	_settings.DownPos = -10.0f;
+	_settings.SpindleSpeed = 100;
 
 	initUI();
 	Connect();
@@ -61,6 +65,8 @@ void ofxGrbl::update() {
 		while (serial.available() > 0) {
 			if (!isDeviceReady) {
 				isDeviceReady = true;
+				sendMessage("$$", true);
+				setSettings();
 			}
 
 			char _byte = (char)serial.readByte();
@@ -69,6 +75,8 @@ void ofxGrbl::update() {
 					cout << "[ ofxGrbl ] [ RECEIVE ] " << readBuffer << endl;
 					if (readBuffer == "ok") {
 						isReadyToSend = true;
+						//sentCount--;
+						//cout << "[ ofxGrbl ] Sent: " << sentCount << endl;
 					}
 					if (readBuffer == "error: Unsupported command") {
 						cout << "[ ofxGrbl ] [ PAUSED ]" << endl;
@@ -77,32 +85,41 @@ void ofxGrbl::update() {
 					}
 					if (readBuffer[0] == '<') {
 						// parse grbl state message
+						/*
 						vector<string> _status = ofSplitString(readBuffer, ",");
 						vector<string> _posx = ofSplitString(_status[1], ":");
 						vector<string> _posz = ofSplitString(_status[3], ">");
 						cout << "[ ofxGrbl ] [ POSITION ] " << _posx[1] << ", " << _status[2] << ", " << _posz[0] << endl;
 						currentPos = ofVec2f(ofToFloat(_posx[1]) / (float)GRBL_WIDTH, ofToFloat(_status[2]) / (float)GRBL_HEIGHT);
+						*/
 
-						if (ofToFloat(_posz[0]) < _settings.UpPos) {
-							if (!isDown) {
-								isDown = true;
-								cout << "[ ofxGrbl ] DOWN" << endl;
-								ofNotifyEvent(UpDownEvent, isDown);
-							}
-						}
-						else {
-							if (isDown) {
-								isDown = false;
-								cout << "[ ofxGrbl ] UP" << endl;
-								ofNotifyEvent(UpDownEvent, isDown);
-							}
-						}
+						readBuffer = readBuffer.substr(1, readBuffer.length() - 2);
+						vector<string> _status = ofSplitString(readBuffer, "|");
+						status = _status[0];
+						vector<string> _pos_str = ofSplitString(_status[1], ":");
+						vector<string> _pos = ofSplitString(_pos_str[1], ",");
+						cout << "[ ofxGrbl ] [ POSITION ] " << _pos[0] << ", " << _pos[1] << ", " << _pos[2] << endl;
+						currentPos = ofVec3f(ofToFloat(_pos[0]) / (float)GRBL_WIDTH, ofToFloat(_pos[1]) / (float)GRBL_HEIGHT);
+						//if (ofToFloat(_pos[2]) < _settings.UpPos) {
+						//	if (!isDown) {
+						//		isDown = true;
+						//		cout << "[ ofxGrbl ] DOWN" << endl;
+						//		ofNotifyEvent(UpDownEvent, isDown);
+						//	}
+						//}
+						//else {
+						//	if (isDown) {
+						//		isDown = false;
+						//		cout << "[ ofxGrbl ] UP" << endl;
+						//		ofNotifyEvent(UpDownEvent, isDown);
+						//	}
+						//}
 					}
 					readBuffer = "";
 				}
 			}
 			else {
-				readBuffer += _byte;
+				readBuffer = readBuffer + _byte;
 			}
 		}
 	}
@@ -198,7 +215,10 @@ void ofxGrbl::draw(int x, int y, int w, int h) {
 
 //--------------------------------------------------------------
 void ofxGrbl::close() {
-	if (isConnect) sendMessage("G90 G0 X0 Y0 Z0", true);
+	if (isConnect) {
+		if (bSpindle) setSpindle(false);
+		sendMessage("G90 G0 X0 Y0 Z0");
+	}
 }
 
 //--------------------------------------------------------------
@@ -218,11 +238,11 @@ void ofxGrbl::mouseMoved(int x, int y) {
 	if (x > ofGetWidth()) x = ofGetWidth();
 	if (y < 0)y = 0;
 	if (y > ofGetHeight()) y = ofGetHeight();
-	targetPos = ofVec2f((float)x / (float)ofGetWidth(), (float)y / (float)ofGetHeight());
+	targetPos = ofVec3f((float)x / (float)ofGetWidth(), (float)y / (float)ofGetHeight());
 
 	if (gui->isVisible()) return;
 	if (isDrawMode == false) {
-		sendMessage(vec2fToGcode(targetPos));
+		sendMessage(vec3fToGcode(targetPos));
 	}
 }
 
@@ -234,16 +254,16 @@ void ofxGrbl::mouseDragged(int x, int y, int button) {
 	if (y < 0)y = 0;
 	if (y > ofGetHeight()) y = ofGetHeight();
 
-	targetPos = ofVec2f(x / (float)ofGetWidth(), y / (float)ofGetHeight());
+	targetPos = ofVec3f(x / (float)ofGetWidth(), y / (float)ofGetHeight());
 
 	// minimum move
 	if (ofDist(prevPos.x, prevPos.y, targetPos.x, targetPos.y) < 0.001f) {
-		cout << ofDist(prevPos.x, prevPos.y, targetPos.x, targetPos.y) << endl;
+		cout << "Minimum move : " << ofDist(prevPos.x, prevPos.y, targetPos.x, targetPos.y) << endl;
 		return;
 	}
 
 	tmpStroke.push_back(targetPos);
-	sendMessage(vec2fToGcode(targetPos));
+	sendMessage(vec3fToGcode(targetPos));
 
 	prevPos = targetPos;
 }
@@ -252,19 +272,18 @@ void ofxGrbl::mouseDragged(int x, int y, int button) {
 void ofxGrbl::mousePressed(int x, int y, int button) {
 	if (gui->isVisible()) return;
 	tmpStroke.clear();
-	ofVec2f _tmpVec2 = ofVec2f(x / (float)ofGetWidth(), y / (float)ofGetHeight());
+	ofVec3f _tmpVec2 = ofVec3f(x / (float)ofGetWidth(), y / (float)ofGetHeight());
 
 	tmpStroke.push_back(_tmpVec2);
-	sendMessage(vec2fToGcode(_tmpVec2));
-
-	if (_settings.isUseZAxis) sendMessage("G1 Z" + ofToString(_settings.DownPos, 2));
-
+	sendMessage(vec3fToGcode(_tmpVec2));
+	if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")setSpindle(true, false);
+	if (_settings.Mode == "Protter")  sendMessage("G1 Z" + ofToString(_settings.HomePosition.z - _settings.PushDistance, 2));
 }
 
 //--------------------------------------------------------------
 void ofxGrbl::mouseReleased(int x, int y, int button) {
 	if (gui->isVisible()) return;
-	ofVec2f _tmpVec2 = ofVec2f(x / (float)ofGetWidth(), y / (float)ofGetHeight());
+	ofVec3f _tmpVec2 = ofVec3f(x / (float)ofGetWidth(), y / (float)ofGetHeight());
 	tmpStroke.push_back(_tmpVec2);
 	if (tmpStroke.size() > 2) {
 		strokeList.push_back(tmpStroke);
@@ -272,9 +291,9 @@ void ofxGrbl::mouseReleased(int x, int y, int button) {
 
 	tmpStroke.clear();
 
-	sendMessage(vec2fToGcode(_tmpVec2));
-
-	if (_settings.isUseZAxis) sendMessage("G1 Z" + ofToString(_settings.UpPos, 2));
+	sendMessage(vec3fToGcode(_tmpVec2));
+	if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")setSpindle(false, false);
+	if(_settings.Mode == "Protter")  sendMessage("G1 Z" + ofToString(_settings.HomePosition.z, 2));
 }
 
 //--------------------------------------------------------------
@@ -302,26 +321,29 @@ void ofxGrbl::loadFromFile(string _path) {
 	vector<string> _linelist = ofSplitString(_text, "\n", true);
 	cout << "[ ofxGrbl ] loadFromFile() : " << _linelist.size() << " lines." << endl;
 
-	vector<ofVec2f> _tmpVec;
-	bool isDown = false;
+	vector<ofVec3f> _tmpVec;
 	for (int i = 0; i < _linelist.size(); i++) {
 
-		// 
-		if (_linelist[i].find('Z') != string::npos) {
-			if (checkZisDown(_linelist[i])) {
-				_tmpVec.clear();
+		if (_settings.Mode == "Protter") {
+			if (_linelist[i].find('Z') != string::npos) {
+				if (checkZisDown(_linelist[i])) {
+					_tmpVec.clear();
+				}
+				else {
+					if (_tmpVec.size() > 1) strokeList.push_back(_tmpVec);
+				}
+			}
+
+			if (checkMoveCommand(_linelist[i])) {
+				cout << "[ ofxGrbl ] Command added : " << _linelist[i] << endl;
+				_tmpVec.push_back(gcodeToVec3f(_linelist[i]));
+			}
+			else if (_linelist[i][0] == 'M') {
+
 			}
 			else {
-				if (_tmpVec.size() > 1) strokeList.push_back(_tmpVec);
+				cout << "[ ofxGrbl ] Invalid command : " << _linelist[i] << endl;
 			}
-		}
-
-		if (checkXYCommand(_linelist[i])) {
-			cout << "[ ofxGrbl ] Command added : " << _linelist[i] << endl;
-			_tmpVec.push_back(gcodeToVec2f(_linelist[i]));
-		}
-		else {
-			cout << "[ ofxGrbl ] Invalid command : " << _linelist[i] << endl;
 		}
 		sendMessage(_linelist[i]);
 	}
@@ -335,7 +357,8 @@ void ofxGrbl::sendMessage(string _msg, bool direct) {
 				string _message = _msg + "\n";
 				unsigned char* writeByte = (unsigned char*)_message.c_str();
 				serial.writeBytes(writeByte, _message.length());
-				cout << "[ ofxGrbl ] sendMessage( " << _message << " )";
+				//sentCount++;
+				cout << "[ ofxGrbl ] sendMessage( " << _msg << " )" << endl;
 			}
 			else {
 				cout << "[ ofxGrbl ] sendMessage() : Message is empty." << endl;
@@ -347,14 +370,14 @@ void ofxGrbl::sendMessage(string _msg, bool direct) {
 	}
 	else {
 		if (_msg != "") {
-			string _message = _msg + "\n";
+			string _message = _msg;
 			sendQueList.push_back(_message);
 		}
 	}
 }
 
-bool ofxGrbl::checkXYCommand(string _line) {
-	return (_line.find('X') != string::npos) || (_line.find('Y') != string::npos);
+bool ofxGrbl::checkMoveCommand(string _line) {
+	return (_line.find('X') != string::npos) || (_line.find('Y') != string::npos) || (_line.find('Z') != string::npos);
 }
 
 bool ofxGrbl::checkZisDown(string _line) {
@@ -373,12 +396,11 @@ bool ofxGrbl::checkZisDown(string _line) {
 		}
 	}
 
-	return (_zPos < (_settings.DownPos + _settings.UpPos) / 2);
+	return (_zPos == _settings.HomePosition.z - _settings.PushDistance);
 }
 
-ofVec2f ofxGrbl::gcodeToVec2f(string _line) {
-	bool _isXYEnable = false;
-	ofVec2f _result = ofVec2f::zero();
+ofVec3f ofxGrbl::gcodeToVec3f(string _line) {
+	ofVec3f _result = ofVec3f::zero();
 	vector<string> _commands = ofSplitString(_line, " ", true);
 	for (int i = 0; i < _commands.size(); i++) {
 		if (_commands[i][0] == 'X') {
@@ -390,7 +412,6 @@ ofVec2f ofxGrbl::gcodeToVec2f(string _line) {
 				// no space parse
 				_result.x = ofToFloat(_commands[i].substr(1)) / GRBL_WIDTH;
 			}
-			_isXYEnable = true;
 		}
 		else if (_commands[i][0] == 'Y') {
 			if (_commands[i].size() == 1) {
@@ -401,14 +422,23 @@ ofVec2f ofxGrbl::gcodeToVec2f(string _line) {
 				// no space parce
 				_result.y = ofToFloat(_commands[i].substr(1)) / GRBL_HEIGHT;
 			}
-			_isXYEnable = true;
+		}
+		else if (_commands[i][0] == 'Z') {
+			if (_commands[i].size() == 1) {
+				// space parse
+				_result.z = ofToFloat(_commands[i + 1]) / GRBL_DEPTH; // use next character
+			}
+			else {
+				// no space parce
+				_result.z = ofToFloat(_commands[i].substr(1)) / GRBL_DEPTH;
+			}
 		}
 	}
 
 	return _result;
 }
 
-string ofxGrbl::vec2fToGcode(ofVec2f _vec) {
+string ofxGrbl::vec3fToGcode(ofVec3f _vec) {
 	string _message;
 	_message = "G90 G1 X" + ofToString(_vec.x * GRBL_WIDTH, 2) + " Y" + ofToString(_vec.y * GRBL_HEIGHT, 2);
 	return _message;
@@ -427,7 +457,18 @@ void ofxGrbl::initUI() {
 	gui->addWidgetDown(new ofxUILabel("[ Grbl Manager ]", OFX_UI_FONT_LARGE));
 	gui->addSpacer(length - xInit, 2);
 
-	gui->addWidgetDown(new ofxUILabel("GRBL SETTINGS", OFX_UI_FONT_MEDIUM));
+	gui->addLabel("MODE_LABEL", "Mode");
+	gui->addRadio("MODE", modeList);
+	gui->addSpacer(length - xInit, 2);
+	gui->addLabel("SPINDLE_LABEL", "Spindle");
+	gui->addToggle("bSpindle", &bSpindle);
+	gui->addSlider("Spindle Speed(Laser Power)", 0.0, 100.0, &_settings.SpindleSpeed);
+	gui->addSpacer(length - xInit, 2);
+	gui->addLabel("PROTTER_LABEL", "Protter");
+	gui->addSlider("Push Distance", 0.0, 100.0, &_settings.PushDistance);
+	
+	gui->addSpacer(length - xInit, 2);
+	gui->addWidgetDown(new ofxUILabel("Grbl Settings", OFX_UI_FONT_MEDIUM));
 	gui->addSlider("MAX SPEED X", 1, 20000, &_settings.MaxSpeed.x);
 	gui->addSlider("MAX SPEED Y", 1, 20000, &_settings.MaxSpeed.y);
 	gui->addSlider("MAX SPEED Z", 1, 20000, &_settings.MaxSpeed.z);
@@ -438,24 +479,24 @@ void ofxGrbl::initUI() {
 	gui->addSlider("MAX TRAVEL Y", 100.0, 2000.0, &_settings.MaxTravel.y);
 	gui->addSlider("MAX TRAVEL Z", 100.0, 2000.0, &_settings.MaxTravel.z);
 	
-	//gui->add2DPad("HOME POSITION", ofVec3f(0, 1), ofVec3f(0, 1), &_settings.HomePosition, length - xInit, 120);
-
-	gui->addToggle("Z AXIS", &_settings.isUseZAxis);
-	gui->addSlider("UP POS", -50.0, 50.0, &_settings.UpPos);
-	gui->addSlider("DOWN POS", -50.0, 50.0, &_settings.DownPos);
 	gui->addSlider("FEEDBACK INTERVAL", 1, 300, &_settings.FeedbackInterval);
-	
+
 	gui->addLabelButton("SET", false);
+
+	gui->addLabelButton("HOMING", false, (length/2) - xInit, dim);
+	gui->setWidgetPosition(OFX_UI_WIDGET_POSITION_RIGHT);
+	gui->addLabelButton("KILL", false, (length / 2) - xInit, dim);
+	gui->setWidgetPosition(OFX_UI_WIDGET_POSITION_DOWN);
 
 	gui->addSpacer(length - xInit, 2);
 	//gui->addWidgetDown(new ofxUILabel("SERIAL SETTINGS", OFX_UI_FONT_MEDIUM));
-	gui->addLabel("PORT_LABEL", "SERIAL PORT");
+	gui->addLabel("PORT_LABEL", "Serial Port");
 	gui->addTextInput("PORT", "COM3");
 	//gui->addLabel("BAUDRATE_LABEL", "BAUDRATE");
 	gui->addRadio("BAUDRATE", baudrateList);
+	gui->addLabelButton("CONNECT", false);
 	//gui->addLabel("SEND MESSAGE");
 	//gui->addTextInput("INPUT", "$$");
-	gui->addLabelButton("CONNECT SERIAL", false);
 	//gui->addLabelButton("SERIAL SEND", false);
 	//gui->addLabelButton("GET INFO", false);
 
@@ -488,16 +529,8 @@ void ofxGrbl::guiEvent(ofxUIEventArgs &e)
 	string name = e.widget->getName();
 	int kind = e.widget->getKind();
 	//cout << "got event from: " << name << " kind:" << ofToString(kind) << endl;
-
-	if (name == "UP POS") {
-		if (_settings.UpPos < _settings.DownPos) _settings.DownPos = _settings.UpPos;
-		if (_settings.isUseZAxis && sendQueList.size() == 0) sendMessage("G90 G1 Z" + ofToString(_settings.UpPos, 2));
-	}
-	else if (name == "DOWN POS") {
-		if (_settings.DownPos > _settings.UpPos) _settings.UpPos = _settings.DownPos;
-		if (_settings.isUseZAxis && sendQueList.size() == 0) sendMessage("G90 G1 Z" + ofToString(_settings.DownPos, 2));
-	}
-	else if (name == "PORT") {
+	
+	if (name == "PORT") {
 		ofxUITextInput *input = (ofxUITextInput *)e.widget;
 		port = input->getTextString();
 	}
@@ -505,7 +538,7 @@ void ofxGrbl::guiEvent(ofxUIEventArgs &e)
 		ofxUIRadio *radio = (ofxUIRadio *)e.widget;
 		baudrate = ofToInt(radio->getActiveName());
 	}
-	else if (name == "CONNECT SERIAL") {
+	else if (name == "CONNECT") {
 		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
 		if (button->getValue()) {
 			Connect();
@@ -524,11 +557,29 @@ void ofxGrbl::guiEvent(ofxUIEventArgs &e)
 			sendMessage("$$", true);
 		}
 	}
-	else if (name == "GET INFO") {
-		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
-		if (button->getValue()) {
-			sendMessage("$$", true);
+	else if (name == "MODE") {
+		ofxUIRadio *radio = (ofxUIRadio *)e.widget;
+		string _selected = radio->getActiveName();
+		_settings.Mode = _selected;
+	}
+	else if (name == "Spindle" || name == "Laser" || name == "Protter") {
+		ofxUIToggle *toggle = (ofxUIToggle *)e.widget;
+		if (toggle->getValue()) {
+			_settings.Mode = toggle->getName();
+			if (_settings.Mode == "Laser") {
+				sendMessage("$32=1", true);
+			}
+			else {
+				sendMessage("$32=0", true);
+			}
 		}
+	}
+	else if (name == "Spindle Speed(Laser Power)") {
+		setSpindleSpeed(_settings.SpindleSpeed, true);
+	}
+	else if (name == "bSpindle") {
+		ofxUIToggle *toggle = (ofxUIToggle *)e.widget;
+		setSpindle(toggle->getValue(), true);
 	}
 	else if (name == "SET") {
 		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
@@ -541,6 +592,18 @@ void ofxGrbl::guiEvent(ofxUIEventArgs &e)
 		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
 		if (button->getValue()) {
 			home();
+		}
+	}
+	else if (name == "HOMING") {
+		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
+		if (button->getValue()) {
+			homing();
+		}
+	}
+	else if (name == "KILL") {
+		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
+		if (button->getValue()) {
+			killAlarmLock();
 		}
 	}
 	else if (name == "PLAY") {
@@ -588,12 +651,6 @@ void ofxGrbl::guiEvent(ofxUIEventArgs &e)
 			resetStrokes();
 		}
 	}
-	else if (name == "DRAW") {
-		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
-		if (button->getValue()) {
-			drawStrokes();
-		}
-	}
 	else if (name == "SAVE") {
 		ofxUILabelButton *button = (ofxUILabelButton *)e.widget;
 		if (button->getValue()) {
@@ -637,13 +694,16 @@ void ofxGrbl::drawStrokes() {
 	for (int i = 0; i < strokeList.size(); i++) {
 
 		for (int j = 0; j < strokeList[i].size(); j++) {
-			sendMessage(vec2fToGcode(strokeList[i][j]));
+			sendMessage(vec3fToGcode(strokeList[i][j]));
 			if (j == 0) {
-				if (_settings.isUseZAxis) sendMessage("G1 Z" + ofToString(_settings.DownPos, 2));
+				if (_settings.Mode == "Protter") sendMessage("G1 Z" + ofToString(_settings.HomePosition.z - _settings.PushDistance, 4));
+				if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")setSpindle(true, false);
+			}
+			if (j == strokeList[i].size() - 1) {
+				if (_settings.Mode == "Protter") sendMessage("G1 Z" + ofToString(_settings.HomePosition.z, 4));
+				if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")setSpindle(false, false);
 			}
 		}
-
-		if (_settings.isUseZAxis) sendMessage("G1 Z" + ofToString(_settings.UpPos, 2));
 	}
 }
 
@@ -652,16 +712,18 @@ void ofxGrbl::saveStrokes(string _path) {
 
 	for (int i = 0; i < strokeList.size(); i++) {
 
-
 		for (int j = 0; j < strokeList[i].size(); j++) {
-			output += vec2fToGcode(strokeList[i][j]) + "\n";
+			output += vec3fToGcode(strokeList[i][j]) + "\n";
 			if (j == 0){
-				if (_settings.isUseZAxis) output += "G1 Z" + ofToString(_settings.DownPos, 2) + "\n";
-				output += vec2fToGcode(strokeList[i][j]) + "\n";
+				if (_settings.Mode == "Protter") output += "G1 Z" + ofToString(_settings.HomePosition.z - _settings.PushDistance, 4) + "\n";
+				output += vec3fToGcode(strokeList[i][j]) + "\n";
+				if (_settings.Mode == "Spindle" || _settings.Mode == "Laser") output += "M3\n";
+			}
+			if (j == strokeList[i].size() - 1) {
+				if (_settings.Mode == "Protter") output += "G1 Z" + ofToString(_settings.HomePosition.z, 4) + "\n";
+				if (_settings.Mode == "Spindle" || _settings.Mode == "Laser") output += "M5\n";
 			}
 		}
-
-		if (_settings.isUseZAxis) output += "G1 Z" + ofToString(_settings.UpPos, 2) + "\n";
 	}
 
 	string fileName = _path;
@@ -676,6 +738,14 @@ void ofxGrbl::resetStrokes() {
 
 void ofxGrbl::home() {
 	sendMessage("G90 G0 X" + ofToString(_settings.HomePosition.x) + " Y" + ofToString(_settings.HomePosition.y) + " Z" + ofToString(_settings.HomePosition.z), true);
+}
+
+void ofxGrbl::homing() {
+	sendMessage("$H", true);
+}
+
+void ofxGrbl::killAlarmLock() {
+	sendMessage("$X", true);
 }
 
 void ofxGrbl::Connect(string _port, int _baudrate) {
@@ -694,7 +764,6 @@ void ofxGrbl::Connect(string _port, int _baudrate) {
 	isConnect = serial.setup(_port, _baudrate);
 	if (isConnect) {
 		cout << "[ ofxGrbl ] Connected to " << _port << "@" << _baudrate << " !" << endl;
-		sendMessage("$$", true);
 	} else {
 		cout << _port << " is not exists." << endl;
 	}
@@ -713,27 +782,38 @@ void ofxGrbl::setColor(ofColor _color) {
 
 
 void ofxGrbl::setSettings() {
+	// set mode
+	if (_settings.Mode == "Laser") {
+		sendMessage("$32=1");
+	}
+	else {
+		sendMessage("$32=0");
+	}
+	// set spindle speed
+	sendMessage("S" + ofToString((int)_settings.SpindleSpeed));
+
 	// set max speed
-	sendMessage("F" + ofToString(_settings.MaxSpeed.x, 2));
-	sendMessage("$110=" + ofToString(_settings.MaxSpeed.x, 2));
-	sendMessage("$111=" + ofToString(_settings.MaxSpeed.y, 2));
-	sendMessage("$112=" + ofToString(_settings.MaxSpeed.z, 2));
+	sendMessage("F" + ofToString(_settings.MaxSpeed.x, 4));
+	sendMessage("$110=" + ofToString(_settings.MaxSpeed.x, 4));
+	sendMessage("$111=" + ofToString(_settings.MaxSpeed.y, 4));
+	sendMessage("$112=" + ofToString(_settings.MaxSpeed.z, 4));
 	// set accesl
-	sendMessage("$120=" + ofToString(_settings.Accel.x, 2));
-	sendMessage("$121=" + ofToString(_settings.Accel.y, 2));
-	sendMessage("$122=" + ofToString(_settings.Accel.z, 2));
+	sendMessage("$120=" + ofToString(_settings.Accel.x, 4));
+	sendMessage("$121=" + ofToString(_settings.Accel.y, 4));
+	sendMessage("$122=" + ofToString(_settings.Accel.z, 4));
 	// set max travel
-	sendMessage("$130=" + ofToString(_settings.MaxTravel.x, 2));
-	sendMessage("$131=" + ofToString(_settings.MaxTravel.y, 2));
-	sendMessage("$132=" + ofToString(_settings.MaxTravel.z, 2));
+	sendMessage("$130=" + ofToString(_settings.MaxTravel.x, 4));
+	sendMessage("$131=" + ofToString(_settings.MaxTravel.y, 4));
+	sendMessage("$132=" + ofToString(_settings.MaxTravel.z, 4));
 
 	setArea(_settings.MaxTravel.x, _settings.MaxTravel.y);
 }
 
-void ofxGrbl::setArea(float x, float y) {
-	cout << "[ ofxGrbl ] setArea(" << (int)x << ", " << (int)y << ")" << endl;
+void ofxGrbl::setArea(float x, float y, float z) {
+	cout << "[ ofxGrbl ] setArea(" << (int)x << ", " << (int)y << ", " << (int)z << ")" << endl;
 	GRBL_WIDTH = x;
 	GRBL_HEIGHT = y;
+	GRBL_DEPTH = z;
 
 	ofSetWindowShape(GRBL_WIDTH, GRBL_HEIGHT);
 
@@ -743,19 +823,36 @@ void ofxGrbl::setArea(float x, float y) {
 }
 
 void ofxGrbl::setHome(float x, float y, float z) {
-	cout << "[ ofxGrbl ] setArea(" << (int)x << ", " << (int)y << ")" << endl;
+	cout << "[ ofxGrbl ] setHome(" << (int)x << ", " << (int)y << ", " << (int)z << ")" << endl;
 	_settings.HomePosition = ofVec3f(x, y, z);
 }
 void ofxGrbl::setHome(ofVec3f _homePos) {
+	cout << "[ ofxGrbl ] setHome(" << _homePos.x << ", " << _homePos.y << ", " << _homePos.z << ")" << endl;
 	_settings.HomePosition = ofVec3f(_homePos.x, _homePos.y, _homePos.z);
 }
 
+void ofxGrbl::setSpindle(bool _enable, bool _direct) {
+	cout << "[ ofxGrbl ] setArea(" << _enable << ", " << _direct << ")" << endl;
+	bSpindle = _enable;
+	if (bSpindle) {
+		sendMessage("M3", _direct);
+	}
+	else {
+		sendMessage("M5", _direct);
+	}
+}
+void ofxGrbl::setSpindleSpeed(int _speed, bool _direct) {
+	cout << "[ ofxGrbl ] setSpindleSpeed(" << _speed << ", " << _direct << ")" << endl;
+	_settings.SpindleSpeed = _speed;
+	sendMessage("S" + ofToString((int)_settings.SpindleSpeed), _direct);
+}
+
 void ofxGrbl::setPosition(float _mmX, float _mmY, float _mmZ) {
-	tmpStroke.push_back(ofVec2f(_mmX / GRBL_WIDTH, _mmY / GRBL_HEIGHT));
+	tmpStroke.push_back(ofVec3f(_mmX / GRBL_WIDTH, _mmY / GRBL_HEIGHT));
 	sendMessage("G90 G1 X" + ofToString(_mmX) + " Y" + ofToString(_mmY) + "  Z" + ofToString(_mmZ) + " ", false);
 }
 void ofxGrbl::setPosition(ofVec3f _pos) {
-	tmpStroke.push_back(ofVec2f(_pos.x / GRBL_WIDTH, _pos.y / GRBL_HEIGHT));
+	tmpStroke.push_back(ofVec3f(_pos.x / GRBL_WIDTH, _pos.y / GRBL_HEIGHT));
 	sendMessage("G90 G1 X" + ofToString(_pos.x) + " Y" + ofToString(_pos.y) + "  Z" + ofToString(_pos.z) + " ", false);
 }
 
