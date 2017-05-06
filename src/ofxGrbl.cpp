@@ -35,7 +35,7 @@ void ofxGrbl::setup() {
 	// mode
 	modeList.push_back("Spindle");
 	modeList.push_back("Laser");
-	modeList.push_back("Protter");
+	modeList.push_back("Plotter");
 
 	_settings.MaxSpeed = ofVec3f(10000,10000,10000);
 	_settings.Accel = ofVec3f(100, 100, 100);
@@ -216,8 +216,8 @@ void ofxGrbl::draw(int x, int y, int w, int h) {
 //--------------------------------------------------------------
 void ofxGrbl::close() {
 	if (isConnect) {
-		if (bSpindle) setSpindle(false);
-		sendMessage("G90 G0 X0 Y0 Z0");
+		if (bSpindle || _settings.Mode == "Spindle" || _settings.Mode == "Laser") setSpindle(false, true);
+		sendMessage("G90 G0 X0 Y0 Z0", true);
 	}
 }
 
@@ -277,7 +277,7 @@ void ofxGrbl::mousePressed(int x, int y, int button) {
 	tmpStroke.push_back(_tmpVec2);
 	sendMessage(vec3fToGcode(_tmpVec2));
 	if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")setSpindle(true, false);
-	if (_settings.Mode == "Protter")  sendMessage("G1 Z" + ofToString(_settings.HomePosition.z - _settings.PushDistance, 2));
+	if (_settings.Mode == "Plotter")  sendMessage("G1 Z" + ofToString(_settings.HomePosition.z - _settings.PushDistance, 2));
 }
 
 //--------------------------------------------------------------
@@ -293,7 +293,7 @@ void ofxGrbl::mouseReleased(int x, int y, int button) {
 
 	sendMessage(vec3fToGcode(_tmpVec2));
 	if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")setSpindle(false, false);
-	if(_settings.Mode == "Protter")  sendMessage("G1 Z" + ofToString(_settings.HomePosition.z, 2));
+	if(_settings.Mode == "Plotter")  sendMessage("G1 Z" + ofToString(_settings.HomePosition.z, 2));
 }
 
 //--------------------------------------------------------------
@@ -324,7 +324,7 @@ void ofxGrbl::loadFromFile(string _path) {
 	vector<ofVec3f> _tmpVec;
 	for (int i = 0; i < _linelist.size(); i++) {
 
-		if (_settings.Mode == "Protter") {
+		if (_settings.Mode == "Plotter") {
 			if (_linelist[i].find('Z') != string::npos) {
 				if (checkZisDown(_linelist[i])) {
 					_tmpVec.clear();
@@ -462,9 +462,9 @@ void ofxGrbl::initUI() {
 	gui->addSpacer(length - xInit, 2);
 	gui->addLabel("SPINDLE_LABEL", "Spindle");
 	gui->addToggle("bSpindle", &bSpindle);
-	gui->addSlider("Spindle Speed(Laser Power)", 0.0, 100.0, &_settings.SpindleSpeed);
+	gui->addSlider("Spindle Speed(Laser Power)", 0.0, 1000.0, &_settings.SpindleSpeed);
 	gui->addSpacer(length - xInit, 2);
-	gui->addLabel("PROTTER_LABEL", "Protter");
+	gui->addLabel("Plotter_LABEL", "Plotter");
 	gui->addSlider("Push Distance", 0.0, 100.0, &_settings.PushDistance);
 	
 	gui->addSpacer(length - xInit, 2);
@@ -562,7 +562,7 @@ void ofxGrbl::guiEvent(ofxUIEventArgs &e)
 		string _selected = radio->getActiveName();
 		_settings.Mode = _selected;
 	}
-	else if (name == "Spindle" || name == "Laser" || name == "Protter") {
+	else if (name == "Spindle" || name == "Laser" || name == "Plotter") {
 		ofxUIToggle *toggle = (ofxUIToggle *)e.widget;
 		if (toggle->getValue()) {
 			_settings.Mode = toggle->getName();
@@ -696,11 +696,11 @@ void ofxGrbl::drawStrokes() {
 		for (int j = 0; j < strokeList[i].size(); j++) {
 			sendMessage(vec3fToGcode(strokeList[i][j]));
 			if (j == 0) {
-				if (_settings.Mode == "Protter") sendMessage("G1 Z" + ofToString(_settings.HomePosition.z - _settings.PushDistance, 4));
+				if (_settings.Mode == "Plotter") sendMessage("G1 Z" + ofToString(_settings.HomePosition.z - _settings.PushDistance, 4));
 				if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")setSpindle(true, false);
 			}
 			if (j == strokeList[i].size() - 1) {
-				if (_settings.Mode == "Protter") sendMessage("G1 Z" + ofToString(_settings.HomePosition.z, 4));
+				if (_settings.Mode == "Plotter") sendMessage("G1 Z" + ofToString(_settings.HomePosition.z, 4));
 				if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")setSpindle(false, false);
 			}
 		}
@@ -715,12 +715,12 @@ void ofxGrbl::saveStrokes(string _path) {
 		for (int j = 0; j < strokeList[i].size(); j++) {
 			output += vec3fToGcode(strokeList[i][j]) + "\n";
 			if (j == 0){
-				if (_settings.Mode == "Protter") output += "G1 Z" + ofToString(_settings.HomePosition.z - _settings.PushDistance, 4) + "\n";
+				if (_settings.Mode == "Plotter") output += "G1 Z" + ofToString(_settings.HomePosition.z - _settings.PushDistance, 4) + "\n";
 				output += vec3fToGcode(strokeList[i][j]) + "\n";
 				if (_settings.Mode == "Spindle" || _settings.Mode == "Laser") output += "M3\n";
 			}
 			if (j == strokeList[i].size() - 1) {
-				if (_settings.Mode == "Protter") output += "G1 Z" + ofToString(_settings.HomePosition.z, 4) + "\n";
+				if (_settings.Mode == "Plotter") output += "G1 Z" + ofToString(_settings.HomePosition.z, 4) + "\n";
 				if (_settings.Mode == "Spindle" || _settings.Mode == "Laser") output += "M5\n";
 			}
 		}
