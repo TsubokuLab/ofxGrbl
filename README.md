@@ -46,8 +46,8 @@
 
 | 名称 | 価格 |　備考 | 買った場所 |
 | ------------- | ------------- | ------------- | ------------- |
-| V-Slot® Linear Rail | 1mあたり $6 | V型の溝がついたライナーレール。1本の最長は1.5mまでだった気がする。 | 20mm x 20mm [http://bit.ly/2oqbJw1](http://bit.ly/2oqbJw1)<br />20mm x 40mm [http://bit.ly/2ntOzQX](http://bit.ly/2ntOzQX) |
-| Solid V Wheel™ Kit | 20個セット $35 | V型の溝に沿って稼働するホイールキット | [http://bit.ly/2n1QPU4](http://bit.ly/2n1QPU4) |
+| V-Slot® Linear Rail | 1mあたり $6 | V型の溝がついたライナーレール。1本の最長は1.5mまでだった気がする。 | 20mm x 20mm [http://bit.ly/2qD2H0e](http://bit.ly/2qD2H0e)<br />20mm x 40mm [http://bit.ly/2qcXwTz](http://bit.ly/2qcXwTz) |
+| Solid V Wheel™ Kit | 20個セット $35 | V型の溝に沿って稼働するホイールキット | [http://bit.ly/2pIwxfD](http://bit.ly/2pIwxfD) |
 | Smooth Idler Pulley wheel Kit | 20個入り $31.90 | アイドラープーリー（ベルト用滑車）のホイールキット。ベルトをレールに固定せずに | [http://bit.ly/2oO80or](http://bit.ly/2oO80or) |
 | 偏心スペーサ6mm | 20個セット $19.90 | 中心が偏っていて、片側のホイールを締め付けるのに使うスペーサー | [http://bit.ly/2n1N4y7](http://bit.ly/2n1N4y7) |
 | タイミングベルト　GT2 | 5m 1200円 | GT2（2mmピッチ）のタイミングベルト | [http://amzn.to/2nLpgf1](http://amzn.to/2nLpgf1) |
