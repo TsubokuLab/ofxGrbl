@@ -42,6 +42,10 @@ void ofxGrbl::setup() {
 	_settings.FeedbackInterval = 10;
 	_settings.SpindleSpeed = 100;
 
+	if(bgColor == ofColor())bgColor = ofColor(40, 255);
+
+	if(settingsFileName == "") settingsFileName = "grblSettings.xml";
+
 	initUI();
 	Connect();
 
@@ -100,20 +104,28 @@ void ofxGrbl::update() {
 						vector<string> _pos = ofSplitString(_pos_str[1], ",");
 						cout << "[ ofxGrbl ] [ POSITION ] " << _pos[0] << ", " << _pos[1] << ", " << _pos[2] << endl;
 						currentPos = ofVec3f(ofToFloat(_pos[0]) / (float)GRBL_WIDTH, ofToFloat(_pos[1]) / (float)GRBL_HEIGHT);
-						//if (ofToFloat(_pos[2]) < _settings.UpPos) {
-						//	if (!isDown) {
-						//		isDown = true;
-						//		cout << "[ ofxGrbl ] DOWN" << endl;
-						//		ofNotifyEvent(UpDownEvent, isDown);
-						//	}
-						//}
-						//else {
-						//	if (isDown) {
-						//		isDown = false;
-						//		cout << "[ ofxGrbl ] UP" << endl;
-						//		ofNotifyEvent(UpDownEvent, isDown);
-						//	}
-						//}
+						// Events
+						ofNotifyEvent(PositionEvent, currentPos);
+						if (ofToFloat(_pos[2]) < 0) {
+							if (!isDown) {
+								isDown = true;
+								cout << "[ ofxGrbl ] DOWN" << endl;
+								ofNotifyEvent(UpDownEvent, isDown);
+								ofxUILabelToggle *_toggle = (ofxUILabelToggle *)gui->getWidget("bSpindle");
+								_toggle->setValue(isDown);
+
+								if (strokeList.size() > 1) strokeList.erase(strokeList.begin());
+							}
+						}
+						else {
+							if (isDown) {
+								isDown = false;
+								cout << "[ ofxGrbl ] UP" << endl;
+								ofNotifyEvent(UpDownEvent, isDown);
+								ofxUILabelToggle *_toggle = (ofxUILabelToggle *)gui->getWidget("bSpindle");
+								_toggle->setValue(isDown);
+							}
+						}
 					}
 					readBuffer = "";
 				}
@@ -153,21 +165,26 @@ void ofxGrbl::draw() {
 //--------------------------------------------------------------
 void ofxGrbl::draw(int x, int y, int w, int h) {
 	_fbo.begin();
-	ofBackground(40);
+	ofBackground(bgColor);
+	ofNoFill();
+	ofSetColor(255);
+	ofSetLineWidth(3);
+	ofDrawRectangle(2, 2, WINDOW_WIDTH - 3, WINDOW_HEIGHT - 3);
+	ofFill();
 	ofSetLineWidth(3);
 
 	if (ofGetMousePressed(0)) {
-		ofSetColor(color);
-		ofDrawCircle((float)ofGetMouseX() / ofGetWidth() * WINDOW_WIDTH, (float)ofGetMouseY() / ofGetHeight() * WINDOW_HEIGHT, 15);
+		//ofSetColor(color);
+		//ofDrawCircle((float)ofGetMouseX() / ofGetWidth() * WINDOW_WIDTH, (float)ofGetMouseY() / ofGetHeight() * WINDOW_HEIGHT, 15);
 		//ofSetColor(0, 255, 0);
 		//ofDrawBitmapString("X:" + ofToString(ofGetMouseX() / (float)ofGetWidth() * GRBL_WIDTH) + "\nY:" + ofToString(ofGetMouseY() / (float)ofGetHeight() * GRBL_HEIGHT), (float)ofGetMouseX() / ofGetWidth() * WINDOW_WIDTH + 20, (float)ofGetMouseY() / ofGetHeight() * WINDOW_HEIGHT + 20);
 	}
 
 	for (int i = 0; i < strokeList.size(); i++) {
 		ofPath line = ofPath();
-		line.setStrokeColor(ofColor(255, 255, 255));
 		line.setFilled(false);
 		line.setStrokeWidth(3);
+		line.setStrokeColor(ofColor(255, 255, 255));
 		line.moveTo(strokeList[i][0].x * WINDOW_WIDTH, strokeList[i][0].y * WINDOW_HEIGHT);
 		for (int j = 1; j < strokeList[i].size(); j++) {
 			line.lineTo(strokeList[i][j].x * WINDOW_WIDTH, strokeList[i][j].y * WINDOW_HEIGHT);
@@ -216,7 +233,7 @@ void ofxGrbl::draw(int x, int y, int w, int h) {
 //--------------------------------------------------------------
 void ofxGrbl::close() {
 	if (isConnect) {
-		if (bSpindle || _settings.Mode == "Spindle" || _settings.Mode == "Laser") setSpindle(false, true);
+		if (bSpindle) setSpindle(false, true);
 		sendMessage("G90 G0 X0 Y0 Z0", true);
 	}
 }
@@ -235,10 +252,10 @@ void ofxGrbl::keyReleased(int key) {
 void ofxGrbl::mouseMoved(int x, int y) {
 	
 	if (x < 0)x = 0;
-	if (x > ofGetWidth()) x = ofGetWidth();
+	if (x > GRBL_WIDTH) x = GRBL_WIDTH;
 	if (y < 0)y = 0;
-	if (y > ofGetHeight()) y = ofGetHeight();
-	targetPos = ofVec3f((float)x / (float)ofGetWidth(), (float)y / (float)ofGetHeight());
+	if (y > GRBL_HEIGHT) y = GRBL_HEIGHT;
+	targetPos = ofVec3f((float)x / GRBL_WIDTH, (float)y / GRBL_HEIGHT);
 
 	if (gui->isVisible()) return;
 	if (isDrawMode == false) {
@@ -250,11 +267,11 @@ void ofxGrbl::mouseMoved(int x, int y) {
 void ofxGrbl::mouseDragged(int x, int y, int button) {
 	if (gui->isVisible()) return;
 	if (x < 0)x = 0;
-	if (x > ofGetWidth()) x = ofGetWidth();
+	if (x > GRBL_WIDTH) x = GRBL_WIDTH;
 	if (y < 0)y = 0;
-	if (y > ofGetHeight()) y = ofGetHeight();
+	if (y > GRBL_HEIGHT) y = GRBL_HEIGHT;
 
-	targetPos = ofVec3f(x / (float)ofGetWidth(), y / (float)ofGetHeight());
+	targetPos = ofVec3f((float)x / GRBL_WIDTH, (float)y / GRBL_HEIGHT);
 
 	// minimum move
 	if (ofDist(prevPos.x, prevPos.y, targetPos.x, targetPos.y) < 0.001f) {
@@ -272,18 +289,18 @@ void ofxGrbl::mouseDragged(int x, int y, int button) {
 void ofxGrbl::mousePressed(int x, int y, int button) {
 	if (gui->isVisible()) return;
 	tmpStroke.clear();
-	ofVec3f _tmpVec2 = ofVec3f(x / (float)ofGetWidth(), y / (float)ofGetHeight());
+	ofVec3f _tmpVec2 = ofVec3f((float)x / GRBL_WIDTH, (float)y / GRBL_HEIGHT);
 
 	tmpStroke.push_back(_tmpVec2);
 	sendMessage(vec3fToGcode(_tmpVec2));
-	if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")setSpindle(true, false);
+	/*if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")*/setSpindle(true, false);
 	if (_settings.Mode == "Plotter")  sendMessage("G1 Z" + ofToString(_settings.HomePosition.z - _settings.PushDistance, 2));
 }
 
 //--------------------------------------------------------------
 void ofxGrbl::mouseReleased(int x, int y, int button) {
 	if (gui->isVisible()) return;
-	ofVec3f _tmpVec2 = ofVec3f(x / (float)ofGetWidth(), y / (float)ofGetHeight());
+	ofVec3f _tmpVec2 = ofVec3f((float)x / GRBL_WIDTH, (float)y / GRBL_HEIGHT);
 	tmpStroke.push_back(_tmpVec2);
 	if (tmpStroke.size() > 2) {
 		strokeList.push_back(tmpStroke);
@@ -292,13 +309,14 @@ void ofxGrbl::mouseReleased(int x, int y, int button) {
 	tmpStroke.clear();
 
 	sendMessage(vec3fToGcode(_tmpVec2));
-	if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")setSpindle(false, false);
+	/*if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")*/setSpindle(false, false);
 	if(_settings.Mode == "Plotter")  sendMessage("G1 Z" + ofToString(_settings.HomePosition.z, 2));
 }
 
 //--------------------------------------------------------------
 void ofxGrbl::windowResized(int w, int h) {
-
+	//cout << "[ ofxGrbl ] windowResized( " << w << ", " << h << " )" << endl;
+	gui->setScrollAreaHeight(h);
 }
 
 //--------------------------------------------------------------
@@ -452,7 +470,10 @@ void ofxGrbl::initUI() {
 	float xInit = OFX_UI_GLOBAL_WIDGET_SPACING;
 	float length = 280 - xInit;
 
-	gui = new ofxUICanvas(0, 5, length + xInit, 1080);
+	gui = new ofxUIScrollableCanvas(0, 5, length + xInit, 1080);
+	gui->setScrollAreaToScreen();
+	gui->setScrollableDirections(false, true);
+
 	gui->setFont("./GUI/NewMedia Fett.ttf");
 	gui->addWidgetDown(new ofxUILabel("[ Grbl Manager ]", OFX_UI_FONT_LARGE));
 	gui->addSpacer(length - xInit, 2);
@@ -461,7 +482,7 @@ void ofxGrbl::initUI() {
 	gui->addRadio("MODE", modeList);
 	gui->addSpacer(length - xInit, 2);
 	gui->addLabel("SPINDLE_LABEL", "Spindle");
-	gui->addToggle("bSpindle", &bSpindle);
+	gui->addLabelToggle("bSpindle", &bSpindle);
 	gui->addSlider("Spindle Speed(Laser Power)", 0.0, 1000.0, &_settings.SpindleSpeed);
 	gui->addSpacer(length - xInit, 2);
 	gui->addLabel("Plotter_LABEL", "Plotter");
@@ -483,17 +504,17 @@ void ofxGrbl::initUI() {
 
 	gui->addLabelButton("SET", false);
 
-	gui->addLabelButton("HOMING", false, (length/2) - xInit, dim);
-	gui->setWidgetPosition(OFX_UI_WIDGET_POSITION_RIGHT);
-	gui->addLabelButton("KILL", false, (length / 2) - xInit, dim);
-	gui->setWidgetPosition(OFX_UI_WIDGET_POSITION_DOWN);
+	//gui->addLabelButton("HOMING", false, (length/2) - xInit, dim);
+	//gui->setWidgetPosition(OFX_UI_WIDGET_POSITION_RIGHT);
+	//gui->addLabelButton("KILL", false, (length / 2) - xInit, dim);
+	//gui->setWidgetPosition(OFX_UI_WIDGET_POSITION_DOWN);
 
 	gui->addSpacer(length - xInit, 2);
 	//gui->addWidgetDown(new ofxUILabel("SERIAL SETTINGS", OFX_UI_FONT_MEDIUM));
 	gui->addLabel("PORT_LABEL", "Serial Port");
 	gui->addTextInput("PORT", "COM3");
 	//gui->addLabel("BAUDRATE_LABEL", "BAUDRATE");
-	gui->addRadio("BAUDRATE", baudrateList);
+	//gui->addRadio("BAUDRATE", baudrateList);
 	gui->addLabelButton("CONNECT", false);
 	//gui->addLabel("SEND MESSAGE");
 	//gui->addTextInput("INPUT", "$$");
@@ -516,8 +537,11 @@ void ofxGrbl::initUI() {
 	gui->addLabelButton("SAVE", false);
 	gui->addLabelButton("LOAD", false);
 
-
 	gui->setTheme(30);
+
+	gui->autoSizeToFitWidgets();
+	gui->getRect()->setWidth(ofGetWidth());
+
 	ofAddListener(gui->newGUIEvent, this, &ofxGrbl::guiEvent);
 
 	loadSettings();
@@ -578,7 +602,7 @@ void ofxGrbl::guiEvent(ofxUIEventArgs &e)
 		setSpindleSpeed(_settings.SpindleSpeed, true);
 	}
 	else if (name == "bSpindle") {
-		ofxUIToggle *toggle = (ofxUIToggle *)e.widget;
+		ofxUILabelToggle *toggle = (ofxUILabelToggle *)e.widget;
 		setSpindle(toggle->getValue(), true);
 	}
 	else if (name == "SET") {
@@ -674,12 +698,12 @@ void ofxGrbl::toggleVisible() {
 //--------------------------------------------------------------
 void ofxGrbl::saveSettings() {
 	cout << "[ ofxGrbl ] saveSettings" << endl;
-	gui->saveSettings("./GUI/guiSettings.xml");
+	gui->saveSettings("./GUI/" + settingsFileName);
 }
 //--------------------------------------------------------------
 void ofxGrbl::loadSettings() {
 	cout << "[ ofxGrbl ] loadSettings" << endl;
-	gui->loadSettings("./GUI/guiSettings.xml");
+	gui->loadSettings("./GUI/" + settingsFileName);
 
 	setSettings();
 
@@ -697,11 +721,11 @@ void ofxGrbl::drawStrokes() {
 			sendMessage(vec3fToGcode(strokeList[i][j]));
 			if (j == 0) {
 				if (_settings.Mode == "Plotter") sendMessage("G1 Z" + ofToString(_settings.HomePosition.z - _settings.PushDistance, 4));
-				if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")setSpindle(true, false);
+				/*if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")*/setSpindle(true, false);
 			}
 			if (j == strokeList[i].size() - 1) {
 				if (_settings.Mode == "Plotter") sendMessage("G1 Z" + ofToString(_settings.HomePosition.z, 4));
-				if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")setSpindle(false, false);
+				/*if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")*/setSpindle(false, false);
 			}
 		}
 	}
@@ -717,11 +741,11 @@ void ofxGrbl::saveStrokes(string _path) {
 			if (j == 0){
 				if (_settings.Mode == "Plotter") output += "G1 Z" + ofToString(_settings.HomePosition.z - _settings.PushDistance, 4) + "\n";
 				output += vec3fToGcode(strokeList[i][j]) + "\n";
-				if (_settings.Mode == "Spindle" || _settings.Mode == "Laser") output += "M3\n";
+				/*if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")*/ output += "M3\n";
 			}
 			if (j == strokeList[i].size() - 1) {
 				if (_settings.Mode == "Plotter") output += "G1 Z" + ofToString(_settings.HomePosition.z, 4) + "\n";
-				if (_settings.Mode == "Spindle" || _settings.Mode == "Laser") output += "M5\n";
+				/*if (_settings.Mode == "Spindle" || _settings.Mode == "Laser")*/ output += "M5\n";
 			}
 		}
 	}
@@ -779,7 +803,10 @@ void ofxGrbl::setColor(ofColor _color) {
 	cout << "[ ofxGrbl ] SetColor() : R" << (int)_color.r << " G" << (int)_color.g << " B" << (int)_color.b << " A" << (int)_color.a << endl;
 	color = _color;
 }
-
+void ofxGrbl::setBGColor(ofColor _color) {
+	cout << "[ ofxGrbl ] setBGColor() : R" << (int)_color.r << " G" << (int)_color.g << " B" << (int)_color.b << " A" << (int)_color.a << endl;
+	bgColor = _color;
+}
 
 void ofxGrbl::setSettings() {
 	// set mode
@@ -852,8 +879,7 @@ void ofxGrbl::setPosition(float _mmX, float _mmY, float _mmZ) {
 	sendMessage("G90 G1 X" + ofToString(_mmX) + " Y" + ofToString(_mmY) + "  Z" + ofToString(_mmZ) + " ", false);
 }
 void ofxGrbl::setPosition(ofVec3f _pos) {
-	tmpStroke.push_back(ofVec3f(_pos.x / GRBL_WIDTH, _pos.y / GRBL_HEIGHT));
-	sendMessage("G90 G1 X" + ofToString(_pos.x) + " Y" + ofToString(_pos.y) + "  Z" + ofToString(_pos.z) + " ", false);
+	setPosition(_pos.x, _pos.y, _pos.z);
 }
 
 void ofxGrbl::moveRight(float _mm) {

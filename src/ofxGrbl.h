@@ -34,6 +34,8 @@ public:
 	void setMoveMode();
 	void setColor(ofColor _color);
 	ofColor color;
+	void setBGColor(ofColor _color);
+	ofColor bgColor;
 
 	void setSettings();
 	void setArea(float x, float y, float z = 0);
@@ -102,14 +104,17 @@ public:
 	void initUI();
 	void guiEvent(ofxUIEventArgs &e);
 	void toggleVisible();
-	ofxUICanvas *gui;
+	ofxUIScrollableCanvas *gui;
 	float theme;
 	vector<string> baudrateList;
 	vector<string> modeList;
 	float feedback_interval;
 
+	string settingsFileName;
+
 	// events
 	ofEvent<bool> UpDownEvent;
+	ofEvent<ofVec3f> PositionEvent;
 
 	// Grbl Settings
 	GrblSettings _settings;
